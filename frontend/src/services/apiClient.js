@@ -12,13 +12,18 @@ export const apiClient = axios.create({
   }
 });
 
-// Request Interceptor: Automatically inject JWT Bearer Token if available
+// Request Interceptor: Inject JWT Token & Role Header for strict security
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('foodbridge_jwt_token');
+    const userRole = localStorage.getItem('foodbridge_user_role') || 'USER';
+    const userId = localStorage.getItem('foodbridge_user_id') || '1';
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers['X-User-Role'] = userRole;
+    config.headers['X-User-Id'] = userId;
     return config;
   },
   (error) => Promise.reject(error)
@@ -28,7 +33,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    console.warn('[FoodBridge API Connection Notice]:', error.message || 'API request failed');
+    if (error.response?.status === 403) {
+      console.warn('[FoodBridge Security Warning]: 403 Forbidden - Access denied to private owner resource.');
+    }
     return Promise.reject(error);
   }
 );
@@ -38,29 +45,25 @@ export const FoodBridgeApi = {
   // Authentication
   login: (credentials) => apiClient.post('/auth/login', credentials),
   register: (userData) => apiClient.post('/auth/register', userData),
-  googleAuth: (googleToken) => apiClient.post('/auth/google', { token: googleToken }),
-  verifyPhoneOtp: (otpData) => apiClient.post('/auth/phone-verify', otpData),
+  googleAuth: (data) => apiClient.post('/auth/google', data),
+  requestPhoneOtp: (phoneData) => apiClient.post('/auth/phone/request-otp', phoneData),
+  verifyPhoneOtp: (otpData) => apiClient.post('/auth/phone/verify-otp', otpData),
   getMe: () => apiClient.get('/auth/me'),
+
+  // Owner Private Business Profile (403 Forbidden for non-owners)
+  getOwnerBusinessProfile: () => apiClient.get('/businesses/me'),
 
   // Map & Geo Entities
   getNearbyMapPlaces: (lat, lng, radius = 5.0) => apiClient.get(`/map/nearby?lat=${lat}&lng=${lng}&radiusKm=${radius}`),
   getRestaurants: () => apiClient.get('/map/restaurants'),
   getNgos: () => apiClient.get('/map/ngos'),
-  getDrivers: () => apiClient.get('/map/drivers'),
 
-  // Entity Registrations & Updates
-  registerRestaurant: (data) => apiClient.post('/restaurants/register', data),
-  updateRestaurantLocation: (locationData) => apiClient.put('/restaurants/location', locationData),
-  registerNgo: (data) => apiClient.post('/ngos/register', data),
-  updateDriverLocation: (locationData) => apiClient.post('/drivers/location', locationData),
-
-  // Food Surplus Listings
+  // Food Surplus Listings & Workflows
   getFoodListings: (params) => apiClient.get('/food/nearby', { params }),
   createFoodListing: (foodData) => apiClient.post('/food', foodData),
-  
-  // Orders & Wallet
-  createOrder: (orderData) => apiClient.post('/orders', orderData),
   claimDonation: (donationData) => apiClient.post('/donations/claim', donationData),
+  
+  // Wallet & Receipts
   getWalletBalance: () => apiClient.get('/wallet/balance'),
-  getTransactions: () => apiClient.get('/wallet/transactions')
+  getTaxReceipt: (receiptId) => apiClient.get(`/tax/receipt/${receiptId}`)
 };

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { FoodBridgeApi } from '../services/apiClient';
 
 const AuthContext = createContext();
 
@@ -94,28 +95,52 @@ export const TRANSLATIONS = {
 };
 
 export function AuthProvider({ children }) {
-  // Current active language (EN, HI, BN, TA)
   const [lang, setLang] = useState('EN');
 
-  // Simulated logged-in user with role & KYC badge
+  // Authenticated User State (Null when unauthenticated, or user object)
   const [user, setUser] = useState({
-    id: 'USR-9041',
+    id: 1,
     name: 'Som Prakash',
     email: 'somprakash@foodbridge.org',
     phone: '+91 98765 43210',
-    role: 'RESTAURANT', // RESTAURANT, HOTEL, BAKERY, NGO, BUYER, DELIVERY_PARTNER, OWNER_ADMIN
+    role: 'OWNER_ADMIN', // USER, DONOR, RESTAURANT_OWNER, OWNER_ADMIN, NGO, SHELTER, ADMIN
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
     isVerified: true,
-    kycStatus: 'APPROVED',
-    verificationBadge: 'FSSAI VERIFIED DONOR',
-    coinsBalance: 450,
-    referralCode: 'SOM2026'
+    verificationBadge: 'VERIFIED BUSINESS OWNER',
+    businessName: 'Som Prakash Restaurant & Dining',
+    kycStatus: 'APPROVED'
   });
+
+  const [businessData, setBusinessData] = useState(null);
+
+  // Sync role to localStorage for API header injection
+  useEffect(() => {
+    if (user?.role) {
+      localStorage.setItem('foodbridge_user_role', user.role);
+      localStorage.setItem('foodbridge_user_id', user.id || 1);
+    }
+  }, [user]);
+
+  // Fetch Business Data ONLY if user is verified owner
+  useEffect(() => {
+    const isOwnerRole = user?.role === 'OWNER_ADMIN' || user?.role === 'RESTAURANT_OWNER';
+    if (isOwnerRole) {
+      FoodBridgeApi.getOwnerBusinessProfile()
+        .then(res => setBusinessData(res))
+        .catch(err => {
+          console.info("[Auth Security]: Non-owner request blocked (403 Forbidden)");
+          setBusinessData(null);
+        });
+    } else {
+      setBusinessData(null);
+    }
+  }, [user?.role]);
 
   const switchRole = (newRole) => {
     setUser(prev => ({
       ...prev,
-      role: newRole
+      role: newRole,
+      businessName: (newRole === 'OWNER_ADMIN' || newRole === 'RESTAURANT_OWNER') ? 'Som Prakash Restaurant & Dining' : null
     }));
   };
 
@@ -126,15 +151,22 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    localStorage.removeItem('foodbridge_jwt_token');
+    localStorage.removeItem('foodbridge_user_role');
+    localStorage.removeItem('foodbridge_user_id');
     setUser(null);
+    setBusinessData(null);
   };
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.EN;
+  const isBusinessOwner = user && (user.role === 'OWNER_ADMIN' || user.role === 'RESTAURANT_OWNER');
 
   return (
     <AuthContext.Provider value={{
       user,
       setUser,
+      businessData,
+      isBusinessOwner,
       switchRole,
       logout,
       lang,
