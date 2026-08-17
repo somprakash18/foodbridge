@@ -20,16 +20,25 @@ public class Business {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "owner_id", nullable = false, unique = true)
+    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
+
+    @Column(name = "donor_type", length = 50)
+    private String donorType; // RESTAURANT, WEDDING, HOTEL, HOSTEL, PARTY, COLLEGE, CORPORATE_EVENT, CATERER, COMMUNITY_EVENT, OTHER
 
     @Column(name = "business_name", nullable = false, length = 150)
     private String businessName;
 
+    @Column(name = "event_name", length = 150)
+    private String eventName;
+
+    @Column(name = "venue_name", length = 150)
+    private String venueName;
+
     @Column(name = "establishment_type", length = 50)
     private String establishmentType;
 
-    @Column(name = "fssai_license", nullable = false, length = 80)
+    @Column(name = "fssai_license", length = 80)
     private String fssaiLicense;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -44,22 +53,34 @@ public class Business {
     @Column(nullable = false, length = 80)
     private String city;
 
+    @Column(name = "food_type", length = 50)
+    private String foodType; // VEG, NON_VEG, BOTH
+
+    @Column(name = "estimated_servings")
+    private Integer estimatedServings;
+
+    @Column(name = "storage_condition", length = 50)
+    private String storageCondition;
+
+    @Column(name = "available_until", length = 50)
+    private String availableUntil;
+
     @Column(name = "verification_status", length = 50)
-    private String verificationStatus = "VERIFIED";
+    private String verificationStatus = "PENDING";
 
     @Column(name = "tax_information", length = 100)
     private String taxInformation = "Sec 80G Eligible (IT Act 1961)";
 
     @Column(name = "total_donations")
-    private Integer totalDonations = 26;
+    private Integer totalDonations = 0;
 
     @Column(name = "total_tax_saved_inr")
-    private BigDecimal totalTaxSavedInr = new BigDecimal("8750.00");
+    private BigDecimal totalTaxSavedInr = BigDecimal.ZERO;
 
     @Column(name = "shelters_helped_count")
-    private Integer sheltersHelpedCount = 18;
+    private Integer sheltersHelpedCount = 0;
 
-    @Column(name = "logo_url", length = 500)
+    @Column(name = "logo_url", columnDefinition = "TEXT")
     private String logoUrl;
 
     @Column(name = "created_at", updatable = false)

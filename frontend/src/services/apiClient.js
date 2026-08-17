@@ -50,9 +50,13 @@ export const FoodBridgeApi = {
   verifyPhoneOtp: (otpData) => apiClient.post('/auth/phone/verify-otp', otpData),
   getMe: () => apiClient.get('/auth/me'),
 
-  // Role Onboarding
+  // Role & Food Donor Onboarding
   onboardBusiness: (data) => apiClient.post('/onboarding/business', data),
+  onboardFoodDonor: (data) => apiClient.post('/onboarding/food-donor', data),
   onboardNgo: (data) => apiClient.post('/onboarding/ngo', data),
+
+  // Emergency Fast-Track Leftover Food Rescue
+  requestEmergencyDonation: (data) => apiClient.post('/donations/request-emergency', data),
 
   // Owner Private Business Profile (403 Forbidden for non-owners)
   getOwnerBusinessProfile: () => apiClient.get('/businesses/me'),

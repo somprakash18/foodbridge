@@ -1,45 +1,53 @@
 package com.foodbridge.controller;
 
 import com.foodbridge.model.Business;
-import com.foodbridge.model.User;
-import com.foodbridge.model.Role;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/onboarding")
+@RequestMapping("/api/v1")
 @CrossOrigin(origins = "*")
 public class OnboardingController {
 
     /**
-     * RESTAURANT ONBOARDING ENDPOINT
-     * Creates new business record mapped to authenticated owner with PENDING verification & 0 stats.
+     * MULTI-DONOR TYPE ONBOARDING ENDPOINT
+     * Supports Restaurants, Weddings, Hotels, Hostels, Parties, Colleges, Corporate Events, Caterers, and Community Events.
      */
-    @PostMapping("/business")
-    public ResponseEntity<?> createBusinessOnboarding(
+    @PostMapping("/onboarding/food-donor")
+    public ResponseEntity<?> createFoodDonorOnboarding(
             @RequestBody Map<String, String> request,
             @RequestHeader(value = "X-User-Id", defaultValue = "1") Long userId
     ) {
-        String restaurantName = request.getOrDefault("restaurantName", "New Restaurant Entity");
-        String address = request.getOrDefault("address", "Delhi, India");
-        String fssaiLicense = request.getOrDefault("fssaiLicense", "100" + System.currentTimeMillis());
+        String donorType = request.getOrDefault("donorType", "RESTAURANT");
+        String name = request.getOrDefault("name", request.getOrDefault("restaurantName", "Surplus Food Donor"));
+        String eventName = request.getOrDefault("eventName", null);
+        String venueName = request.getOrDefault("venueName", null);
+        String address = request.getOrDefault("address", "New Delhi, India");
+        String fssaiLicense = request.getOrDefault("fssaiLicense", null);
 
-        Business newBusiness = Business.builder()
+        Business newDonor = Business.builder()
                 .id(System.currentTimeMillis())
                 .ownerId(userId)
-                .businessName(restaurantName)
-                .establishmentType("RESTAURANT")
+                .donorType(donorType)
+                .businessName(name)
+                .eventName(eventName)
+                .venueName(venueName)
+                .establishmentType(donorType)
                 .fssaiLicense(fssaiLicense)
                 .address(address)
                 .latitude(28.6139)
                 .longitude(77.2090)
                 .city("New Delhi")
-                .verificationStatus("PENDING") // Default status for brand new accounts!
-                .taxInformation("Sec 80G Application Pending")
-                .totalDonations(0) // Brand new accounts start with ZERO stats!
+                .foodType(request.getOrDefault("foodType", "BOTH"))
+                .estimatedServings(Integer.parseInt(request.getOrDefault("estimatedServings", "50")))
+                .storageCondition(request.getOrDefault("storageCondition", "ROOM_TEMPERATURE"))
+                .availableUntil(request.getOrDefault("availableUntil", "11:30 PM"))
+                .verificationStatus("PENDING")
+                .totalDonations(0)
                 .totalTaxSavedInr(BigDecimal.ZERO)
                 .sheltersHelpedCount(0)
                 .logoUrl(request.getOrDefault("logoUrl", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80"))
@@ -48,33 +56,44 @@ public class OnboardingController {
         return ResponseEntity.ok(Map.of(
                 "status", 200,
                 "success", true,
-                "message", "Restaurant onboarding submitted successfully. Verification pending.",
-                "business", newBusiness
+                "message", donorType + " food donor registration created successfully.",
+                "donor", newDonor
         ));
     }
 
     /**
-     * NGO / SHELTER ONBOARDING ENDPOINT
+     * QUICK EMERGENCY "DONATE LEFTOVER FOOD NOW" ENDPOINT
      */
-    @PostMapping("/ngo")
-    public ResponseEntity<?> createNgoOnboarding(
-            @RequestBody Map<String, String> request,
+    @PostMapping("/donations/request-emergency")
+    public ResponseEntity<?> requestEmergencyDonation(
+            @RequestBody Map<String, Object> request,
             @RequestHeader(value = "X-User-Id", defaultValue = "1") Long userId
     ) {
-        String orgName = request.getOrDefault("orgName", "New Relief NGO");
-        String orgType = request.getOrDefault("orgType", "NGO");
+        String requestId = "DON-REQ-" + (int)((Math.random() * 9000) + 1000);
+        String address = (String) request.getOrDefault("address", "Grand Palace Banquet Hall, Delhi");
+        String servings = String.valueOf(request.getOrDefault("servings", "120"));
+        String foodType = (String) request.getOrDefault("foodType", "Vegetarian");
+
+        Map<String, Object> matchedPartners = Map.of(
+                "count", 3,
+                "partners", List.of(
+                        Map.of("id", 1, "name", "Food Relief Foundation", "distance", "1.2 km", "type", "NGO"),
+                        Map.of("id", 2, "name", "Hope Shelter Delhi", "distance", "2.4 km", "type", "SHELTER"),
+                        Map.of("id", 3, "name", "Robin Hood Army Delhi Squad", "distance", "3.1 km", "type", "VOLUNTEER")
+                )
+        );
 
         return ResponseEntity.ok(Map.of(
                 "status", 200,
                 "success", true,
-                "message", "Organization onboarding submitted successfully.",
-                "organization", Map.of(
-                        "id", System.currentTimeMillis(),
-                        "ownerId", userId,
-                        "name", orgName,
-                        "type", orgType,
-                        "verificationStatus", "PENDING"
-                )
+                "message", "Food donation request created successfully.",
+                "requestId", requestId,
+                "pickupLocation", address,
+                "estimatedServings", servings,
+                "foodType", foodType,
+                "pickupStatus", "SEARCHING_FOR_PICKUP",
+                "assignedVolunteer", "Volunteer Searching...",
+                "matchedPartners", matchedPartners
         ));
     }
 }
