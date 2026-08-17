@@ -1,127 +1,227 @@
-import React, { useState } from 'react';
-import { HeartHandshake, Users, Leaf, MapPin, Clock, ShieldCheck, CheckCircle2, Truck, Navigation } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Leaf, Clock, Check, X, ShieldCheck, CheckCircle2, HeartHandshake } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import LiveMap from '../components/LiveMap';
 
 export default function NgoDashboard() {
-  const { listings, claimDonation, donations } = useApp();
   const { user } = useAuth();
-  const [volunteerName, setVolunteerName] = useState('Rahul Sharma');
 
-  const freeListings = listings.filter(l => l.isFreeDonation || l.discountedPrice === 0);
+  // Live Digital Clock state
+  const [timeString, setTimeString] = useState('');
+
+  useEffect(() => {
+    const updateClock = () => {
+      const now = new Date();
+      setTimeString(now.toLocaleTimeString('en-US', { hour12: true }));
+    };
+    updateClock();
+    const interval = setInterval(updateClock, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // State for donations list
+  const [pendingDonations, setPendingDonations] = useState([
+    { id: 1, restaurant: 'Foodies Hub', food: 'Biryani', qty: '20 Plates', time: '2:00 PM' },
+    { id: 2, restaurant: 'Cedar Street Bakery', food: 'Assorted Pastries', qty: '15 Boxes', time: '3:30 PM' }
+  ]);
+
+  const [historyDonations, setHistoryDonations] = useState([
+    { id: 101, restaurant: 'Green Leaf Grocers', food: 'Fresh Produce', qty: '30 kg', time: '11:15 AM', status: 'Accepted', pickup: 'Picked Up' },
+    { id: 102, restaurant: 'Marco\'s Trattoria', food: 'Pasta & Sauce', qty: '25 Servings', time: '12:45 PM', status: 'Accepted', pickup: 'Scheduled' }
+  ]);
+
+  const [counts, setCounts] = useState({
+    pending: 2,
+    accepted: 2,
+    rejected: 0,
+    picked: 1
+  });
+
+  const handleAccept = (donation) => {
+    setPendingDonations(pendingDonations.filter(d => d.id !== donation.id));
+    setHistoryDonations([
+      { ...donation, status: 'Accepted', pickup: 'Scheduled' },
+      ...historyDonations
+    ]);
+    setCounts(prev => ({
+      ...prev,
+      pending: prev.pending - 1,
+      accepted: prev.accepted + 1
+    }));
+  };
+
+  const handleReject = (donation) => {
+    setPendingDonations(pendingDonations.filter(d => d.id !== donation.id));
+    setCounts(prev => ({
+      ...prev,
+      pending: prev.pending - 1,
+      rejected: prev.rejected + 1
+    }));
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="min-h-screen bg-[#DDE9D9] font-sans flex flex-col justify-between antialiased">
       
-      {/* NGO Header */}
-      <div className="relative rounded-3xl overflow-hidden glass-panel p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-soft">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center space-x-4">
-            <img
-              src={user?.avatarUrl || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=200&q=80"}
-              alt="NGO Logo"
-              className="w-16 h-16 rounded-2xl object-cover border-2 border-emerald-500 shadow-sm"
-            />
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                  {user?.name || "Food Relief Foundation"}
-                </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">
-                  VERIFIED NGO
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">Reg: NGO-REG-2021-987 • Capacity: 1,200 meals/day</p>
+      {/* ------------------------------------------------------------- */}
+      {/* TOP HEADER BAR */}
+      {/* ------------------------------------------------------------- */}
+      <header className="bg-[#1C3D28] text-white px-6 py-4 flex items-center justify-between shadow-md">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-[#346644] flex items-center justify-center text-emerald-300">
+            <Leaf className="w-4 h-4" />
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#F1F8EE]">
+            FoodBridge – NGO Dashboard
+          </h1>
+        </div>
+
+        {/* Live Digital Clock */}
+        <div className="bg-[#2D553A] text-slate-200 text-xs font-mono font-bold px-3.5 py-1.5 rounded-lg border border-[#3C6B4A] shadow-inner">
+          {timeString || '7:42:20 AM'}
+        </div>
+      </header>
+
+      {/* ------------------------------------------------------------- */}
+      {/* MAIN CENTERED CARD CONTAINER */}
+      {/* ------------------------------------------------------------- */}
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#CDE0C6] space-y-8">
+          
+          {/* 4 Status Counter Pills */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-[#F3F8F1] border border-[#D3E5CC] rounded-full py-2 px-4 flex items-center justify-center space-x-2 text-xs font-bold text-[#1C3D28]">
+              <span>Pending 🍽️ :</span>
+              <span className="text-[#2D553A] font-extrabold">{counts.pending}</span>
+            </div>
+
+            <div className="bg-[#F3F8F1] border border-[#D3E5CC] rounded-full py-2 px-4 flex items-center justify-center space-x-2 text-xs font-bold text-[#1C3D28]">
+              <span>Accepted 💚 :</span>
+              <span className="text-[#2D553A] font-extrabold">{counts.accepted}</span>
+            </div>
+
+            <div className="bg-[#F3F8F1] border border-[#D3E5CC] rounded-full py-2 px-4 flex items-center justify-center space-x-2 text-xs font-bold text-[#1C3D28]">
+              <span>Rejected ❌ :</span>
+              <span className="text-rose-600 font-extrabold">{counts.rejected}</span>
+            </div>
+
+            <div className="bg-[#F3F8F1] border border-[#D3E5CC] rounded-full py-2 px-4 flex items-center justify-center space-x-2 text-xs font-bold text-[#1C3D28]">
+              <span>Picked ✅ :</span>
+              <span className="text-[#2D553A] font-extrabold">{counts.picked}</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Impact Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Meals Distributed</span>
-            <HeartHandshake className="w-5 h-5" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 dark:text-white">14,200</div>
-          <p className="text-xs text-emerald-600 font-semibold">+1,200 meals this week</p>
-        </div>
+          {/* ------------------------------------------------------------- */}
+          {/* PENDING DONATIONS SECTION */}
+          {/* ------------------------------------------------------------- */}
+          <div className="space-y-4">
+            <h2 className="text-center text-lg font-extrabold text-[#1C3D28]">
+              Pending Donations
+            </h2>
 
-        <div className="glass-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-brand-600 dark:text-brand-400">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Families Served</span>
-            <Users className="w-5 h-5" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 dark:text-white">3,550</div>
-          <p className="text-xs text-brand-600 font-semibold">Across 12 shelter hubs</p>
-        </div>
-
-        <div className="glass-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-amber-500">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">CO₂ Prevented</span>
-            <Leaf className="w-5 h-5" />
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 dark:text-white">35,500 kg</div>
-          <p className="text-xs text-amber-600 font-semibold">Methane diversion metric</p>
-        </div>
-      </div>
-
-      {/* Live Map Feed */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Nearby Food Rescue Feed</h2>
-        <LiveMap height="h-[380px]" />
-      </div>
-
-      {/* Free Food Listings Available */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Available Free Surplus Donations</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {freeListings.map((item) => (
-            <div key={item.id} className="glass-card p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4">
-              <div className="flex items-center space-x-3">
-                <img src={item.image} alt={item.title} className="w-16 h-16 rounded-2xl object-cover" />
-                <div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                    100% FREE DONATION
-                  </span>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1 mt-1">{item.title}</h3>
-                  <p className="text-xs text-slate-500">{item.restaurantName} • {item.distanceKm} km away</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-100 dark:border-slate-800 font-medium text-slate-700 dark:text-slate-300">
-                <div>
-                  <span className="text-slate-400 block text-[10px]">Quantity</span>
-                  <span className="font-bold">{item.quantityKg} kg ({item.servings} meals)</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">Pickup Deadline</span>
-                  <span className="font-bold text-amber-600">{item.pickupDeadline}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="Volunteer Name (e.g. Rahul Sharma)"
-                  value={volunteerName}
-                  onChange={(e) => setVolunteerName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border-none font-semibold"
-                />
-                <button
-                  onClick={() => claimDonation(item.id, volunteerName)}
-                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-soft flex items-center justify-center space-x-1"
-                >
-                  <HeartHandshake className="w-4 h-4" />
-                  <span>Reserve Donation Now</span>
-                </button>
-              </div>
+            <div className="rounded-xl border border-[#CDE0C6] overflow-hidden shadow-xs">
+              <table className="w-full text-center border-collapse">
+                <thead>
+                  <tr className="bg-[#C5DFB9] text-[#1C3D28] text-xs font-extrabold uppercase">
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Restaurant</th>
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Food</th>
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Qty</th>
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Time</th>
+                    <th className="py-2.5 px-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2EEDC] text-xs font-semibold text-slate-700">
+                  {pendingDonations.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="py-6 text-slate-400 text-xs italic">
+                        No pending donations right now
+                      </td>
+                    </tr>
+                  ) : (
+                    pendingDonations.map((d) => (
+                      <tr key={d.id} className="hover:bg-[#F8FAF6] transition-colors">
+                        <td className="py-3 px-3 border-r border-[#F0F6EC] font-bold text-[#1C3D28]">{d.restaurant}</td>
+                        <td className="py-3 px-3 border-r border-[#F0F6EC]">{d.food}</td>
+                        <td className="py-3 px-3 border-r border-[#F0F6EC] font-bold text-slate-800">{d.qty}</td>
+                        <td className="py-3 px-3 border-r border-[#F0F6EC] text-slate-600">{d.time}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center justify-center space-x-2">
+                            <button
+                              onClick={() => handleAccept(d)}
+                              className="px-3.5 py-1.5 rounded-md bg-[#255234] hover:bg-[#1C3D28] text-white text-xs font-bold transition-all shadow-xs"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleReject(d)}
+                              className="px-3.5 py-1.5 rounded-md bg-[#C83434] hover:bg-[#A62727] text-white text-xs font-bold transition-all shadow-xs"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          ))}
+          </div>
+
+          {/* ------------------------------------------------------------- */}
+          {/* DONATION HISTORY SECTION */}
+          {/* ------------------------------------------------------------- */}
+          <div className="space-y-4 pt-2">
+            <h2 className="text-center text-lg font-extrabold text-[#1C3D28]">
+              Donation History
+            </h2>
+
+            <div className="rounded-xl border border-[#CDE0C6] overflow-hidden shadow-xs">
+              <table className="w-full text-center border-collapse">
+                <thead>
+                  <tr className="bg-[#C5DFB9] text-[#1C3D28] text-xs font-extrabold uppercase">
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Restaurant</th>
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Food</th>
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Qty</th>
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Time</th>
+                    <th className="py-2.5 px-3 border-r border-[#B3D4A4]">Status</th>
+                    <th className="py-2.5 px-3">Pickup</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2EEDC] text-xs font-semibold text-slate-700">
+                  {historyDonations.map((h) => (
+                    <tr key={h.id} className="hover:bg-[#F8FAF6] transition-colors">
+                      <td className="py-3 px-3 border-r border-[#F0F6EC] font-bold text-[#1C3D28]">{h.restaurant}</td>
+                      <td className="py-3 px-3 border-r border-[#F0F6EC]">{h.food}</td>
+                      <td className="py-3 px-3 border-r border-[#F0F6EC] font-bold text-slate-800">{h.qty}</td>
+                      <td className="py-3 px-3 border-r border-[#F0F6EC] text-slate-600">{h.time}</td>
+                      <td className="py-3 px-3 border-r border-[#F0F6EC]">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#E2F0D9] text-[#2E5B27]">
+                          {h.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${
+                          h.pickup === 'Picked Up' ? 'bg-[#D2EBD4] text-[#1F5425]' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {h.pickup}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
-      </div>
+      </main>
+
+      {/* ------------------------------------------------------------- */}
+      {/* FOOTER BAR */}
+      {/* ------------------------------------------------------------- */}
+      <footer className="bg-[#1C3D28] text-[#C5DFB9] py-3 text-center text-xs font-medium border-t border-[#295237]">
+        © 2026 FoodBridge – Connecting Restaurants & NGOs for a Better Tomorrow 🌏
+      </footer>
 
     </div>
   );
