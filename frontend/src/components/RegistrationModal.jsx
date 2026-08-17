@@ -85,13 +85,13 @@ export default function RegistrationModal({ isOpen, onClose }) {
         setStep(3); // Proceed to Account Type Choice!
       }
     } catch (err) {
-      setErrorMessage(err.message || "Google Authentication failed");
+      setErrorMessage(err.message || "Google Authentication failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 1: Create Account -> Triggers Real SMS OTP Verification
+  // Step 1: Request Real SMS OTP
   const handleCreateAccountSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -114,8 +114,8 @@ export default function RegistrationModal({ isOpen, onClose }) {
       setFormData(prev => ({ ...prev, otpCode: '' }));
       setStep(2); // Proceed to Verification Step!
       
-      // Start 45-Second Cooldown Timer
-      setCooldown(45);
+      // Start 60-Second Cooldown Timer
+      setCooldown(60);
       const interval = setInterval(() => {
         setCooldown(prev => {
           if (prev <= 1) {
@@ -187,7 +187,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
         id: Date.now(),
         name: formData.name || 'New Member',
         email: formData.email || `user.${Date.now()}@foodbridge.org`,
-        phone: formData.phone,
+        phone: FirebasePhoneAuthService.normalizePhone(formData.phone),
         role: finalRole,
         isVerified: false, // Default PENDING verification for new accounts!
         verificationBadge: "VERIFICATION PENDING",
@@ -218,6 +218,9 @@ export default function RegistrationModal({ isOpen, onClose }) {
     }
   };
 
+  const normalizedPhone = FirebasePhoneAuthService.normalizePhone(formData.phone);
+  const maskedPhoneDisplay = normalizedPhone.length >= 7 ? `${normalizedPhone.substring(0, 3)}******${normalizedPhone.slice(-4)}` : normalizedPhone;
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 border border-slate-200 dark:border-slate-800 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
@@ -227,7 +230,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
           <div>
             <h3 className="text-lg font-black text-slate-900 dark:text-white">
               {step === 1 ? (authMode === 'SIGNUP' ? 'Create FoodBridge Account' : 'Sign In to FoodBridge') :
-               step === 2 ? 'Account Verification' :
+               step === 2 ? 'Phone SMS Authentication' :
                step === 3 ? 'Welcome to FoodBridge' : 'Complete Setup'}
             </h3>
             <p className="text-[11px] text-slate-500 font-semibold">Real Verification & Role Onboarding</p>
@@ -273,7 +276,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
             <div className="relative text-center my-2">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-slate-800"></div></div>
-              <span className="relative bg-white dark:bg-slate-900 px-3 text-[10px] text-slate-400 font-extrabold uppercase">or use details</span>
+              <span className="relative bg-white dark:bg-slate-900 px-3 text-[10px] text-slate-400 font-extrabold uppercase">or use phone / details</span>
             </div>
 
             {/* Mode Switcher */}
@@ -325,7 +328,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                 <label className="text-slate-700 dark:text-slate-300 block mb-1">Phone Number (+91)</label>
                 <input
                   type="text"
-                  placeholder="+91 98765 43210"
+                  placeholder="7563045006"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none font-bold text-slate-900 dark:text-white"
@@ -379,7 +382,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                 disabled={loading}
                 className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2 transition-all mt-2"
               >
-                <span>{authMode === 'SIGNUP' ? 'Create Account' : 'Sign In'}</span>
+                <span>{authMode === 'SIGNUP' ? 'Send OTP & Create Account' : 'Send OTP & Sign In'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -392,12 +395,12 @@ export default function RegistrationModal({ isOpen, onClose }) {
         {step === 2 && (
           <form onSubmit={handleVerifyOtp} className="space-y-4 text-xs font-semibold">
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-center space-y-1">
-              <div className="text-emerald-800 dark:text-emerald-300 font-extrabold">We sent a verification code to</div>
-              <div className="text-emerald-900 dark:text-white font-black text-sm">{formData.phone}</div>
+              <div className="text-emerald-800 dark:text-emerald-300 font-extrabold">OTP sent to</div>
+              <div className="text-emerald-900 dark:text-white font-black text-sm">{maskedPhoneDisplay}</div>
             </div>
 
             <div>
-              <label className="text-slate-700 dark:text-slate-300 block mb-1">Enter 6-Digit Verification Code</label>
+              <label className="text-slate-700 dark:text-slate-300 block mb-1">Enter 6-Digit OTP</label>
               <input
                 type="text"
                 placeholder="[ _ _ _ _ _ _ ]"
@@ -411,18 +414,18 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
             <button
               type="submit"
-              disabled={loading || !formData.otpCode}
+              disabled={loading || !formData.otpCode || formData.otpCode.length !== 6}
               className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2 transition-all"
             >
-              <span>Verify & Continue</span>
+              <span>Verify OTP</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             <div className="text-center text-[11px] text-slate-400 font-semibold pt-1">
               {cooldown > 0 ? (
-                <span>Resend code in <strong>{cooldown} seconds</strong></span>
+                <span>Resend OTP in <strong>{cooldown} seconds</strong></span>
               ) : (
-                <button type="button" onClick={handleCreateAccountSubmit} className="text-emerald-600 hover:underline font-extrabold">Resend Code Now</button>
+                <button type="button" onClick={handleCreateAccountSubmit} className="text-emerald-600 hover:underline font-extrabold">Resend OTP Now</button>
               )}
             </div>
           </form>

@@ -7,18 +7,33 @@ import { apiClient } from './apiClient';
  */
 export class FirebasePhoneAuthService {
   /**
-   * Normalize phone number to E.164 format (+91XXXXXXXXXX)
+   * Normalize Indian phone number to E.164 format (+917563045006)
+   * Handles: 7563045006, 07563045006, 917563045006, +917563045006, +91 75630 45006
    */
   static normalizePhone(phone) {
-    let clean = phone.replace(/[^0-9+]/g, '');
-    if (!clean.startsWith('+91') && clean.length === 10) {
-      clean = '+91' + clean;
+    if (!phone) return '';
+    let digits = phone.replace(/[^0-9]/g, '');
+
+    // Strip leading zero if 11 digits (e.g. 07563045006)
+    if (digits.startsWith('0') && digits.length === 11) {
+      digits = digits.substring(1);
     }
-    return clean;
+
+    // If 10 digits, prepend +91
+    if (digits.length === 10) {
+      return '+91' + digits;
+    }
+
+    // If 12 digits starting with 91, prepend +
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return '+' + digits;
+    }
+
+    return '+91' + digits;
   }
 
   /**
-   * Validate Indian E.164 phone format (+91 followed by 10 digits starting with 6-9)
+   * Validate Indian E.164 mobile format (+91 followed by 10 digits starting with 6-9)
    */
   static isValidPhone(phone) {
     const clean = this.normalizePhone(phone);
@@ -32,18 +47,29 @@ export class FirebasePhoneAuthService {
     const cleanPhone = this.normalizePhone(phone);
 
     if (!this.isValidPhone(cleanPhone)) {
-      throw new Error("Unable to send OTP. Invalid phone number. Please enter a 10-digit number (+91XXXXXXXXXX).");
+      throw new Error("Please enter a valid 10-digit Indian mobile number (+91XXXXXXXXXX).");
     }
 
     try {
       const res = await apiClient.post('/auth/phone/send-otp', { phone: cleanPhone });
       return {
         success: true,
-        message: res.message || `OTP sent to +91******${cleanPhone.slice(-4)}`
+        message: res.message || `OTP sent to +91******${cleanPhone.slice(-4)}.`
       };
     } catch (err) {
+      const status = err.response?.status;
       const serverError = err.response?.data?.error;
-      throw new Error(serverError || "Unable to send OTP. Please check your phone number and try again.");
+
+      if (status === 429) {
+        throw new Error(serverError || "Too many OTP requests. Please wait a few minutes and try again.");
+      }
+
+      if (serverError) {
+        throw new Error(serverError);
+      }
+
+      // Actionable diagnostic feedback for network / connection errors
+      throw new Error("SMS service is temporarily unavailable. Please try again later.");
     }
   }
 
@@ -52,7 +78,7 @@ export class FirebasePhoneAuthService {
    */
   static async verifyPhoneOtp(phone, otpCode, role = 'BUYER') {
     const cleanPhone = this.normalizePhone(phone);
-    const cleanOtp = otpCode.trim();
+    const cleanOtp = otpCode ? otpCode.trim() : '';
 
     if (!cleanOtp || cleanOtp.length !== 6) {
       throw new Error("Please enter a valid 6-digit SMS OTP code.");
