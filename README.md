@@ -1,58 +1,70 @@
-# FoodBridge – Save Food. Feed People. Reduce Waste.
+# FoodBridge 🍲— Autonomous Surplus Food Marketplace Platform
 
-**FoodBridge** is a production-ready surplus food marketplace connecting restaurants, hotels, bakeries, supermarkets, NGOs, delivery partners, and discount buyers.
+> **Transforming Food Surplus into Social Impact and Economic Recovery**
 
----
-
-## Startup Highlights & Tech Stack
-
-- **Frontend**: React 18 (Vite), Tailwind CSS, Framer Motion, Lucide Icons, Canvas QR Code, Google Maps.
-- **Backend**: Java 17 + Spring Boot 3.2, Spring Security, JWT Authentication, WebSocket STOMP, OpenAPI / Swagger.
-- **Database**: MySQL 8.0 with 20 relational tables, foreign key constraints, indexes, and full seed dataset (`database/schema.sql` and `database/seed.sql`).
-- **AI Features**: OpenAI Food Safety Assistant, AI Matching Engine, AI Route Optimizer, AI Waste Analytics.
-- **Interactive Core**:
-  - 5 Distinct Role Portals: Restaurant/Hotel, NGO, Buyer Marketplace, Delivery Partner, Platform Admin Owner.
-  - Live Google Maps API integration with pinpoint markers & route lines.
-  - QR Code pickup verification system with scanner & generator.
-  - Simulated Razorpay Payment Gateway (UPI, Cards, NetBanking, Wallet).
-  - Digital Wallet with deposit, withdrawal, and transaction ledger.
-  - Referral program with code generation & top referrers leaderboard.
-  - Real-time WebSocket Chat with image file attachments & typing indicators.
-  - Light Mode & Dark Mode with high-contrast accessibility controls.
+FoodBridge is a production-grade, two-sided marketplace connecting restaurants, bakeries, caterers, and grocery stores with surplus food directly to verified local shelters, NGOs, and budget buyers in real time.
 
 ---
 
-## Quick Start (Frontend)
+## 🌟 Key Platform Features
 
-1. Open terminal in `frontend/`:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-2. Open `http://localhost:5173` in your browser.
+### 🏢 For Restaurants & Commercial Donors
+- **1-Tap Surplus Listing**: Upload photo, food category, quantity (kg/meals), storage temperature, and pickup window in under 60 seconds.
+- **AI Food Freshness Predictor**: Autonomous safety scoring engine evaluating ambient temperature, prep time, and packaging type.
+- **Section 80G Tax Certificates**: Automatic generation of compliant Section 80G tax-deduction PDF receipts for every completed donation.
+- **Tiered Subscriptions & Wallet Payouts**: Integrated Stripe Checkout for business tiers (Starter, Growth, Enterprise) with instant wallet payouts.
 
----
+### 🏠 For NGOs, Shelters & Community Kitchens
+- **Live Interactive Surplus Map**: Real-time Google Maps interface showing nearby available food with distance calculations and live Directions API routing.
+- **One-Tap Reservation**: Lock in donations instantly with dynamic QR code verification for pick-up.
+- **Volunteer & Driver Dispatch**: Real-time rider tracking with WebSockets.
 
-## Quick Start (Backend & Database)
-
-1. Import `database/schema.sql` and `database/seed.sql` into MySQL 8.0+.
-2. Configure `backend/src/main/resources/application.yml`.
-3. Build and launch Spring Boot backend:
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
-4. Access Swagger UI at `http://localhost:8080/api/v1/swagger-ui.html`.
+### 📱 Multi-Platform Experience
+- **Progressive Web App**: Built with React (Vite), Tailwind CSS, and Leaflet / Google Maps SDK.
+- **Native Android App (.APK)**: Standalone Capacitor/Flutter mobile app binary for on-the-go management.
+- **Investor Pitch Deck (.PPTX)**: 10-slide PowerPoint presentation embedded for business showcases.
 
 ---
 
-## Project Structure
+## 🛠️ Technology Stack
 
+| Layer | Technologies Used |
+|---|---|
+| **Frontend Web** | React 18 (Vite), Tailwind CSS, Framer Motion, Lucide Icons, Leaflet / Google Maps API |
+| **Mobile Native** | Capacitor JS, Android SDK (Platform 36), Flutter 3.x |
+| **Backend API** | Spring Boot 3.2 (Java 17), Spring Security, JWT Auth, Google OAuth2, WebSockets |
+| **Database** | MySQL 8.0 / PostgreSQL (23 relational tables with spatial indexing) |
+| **Integrations** | Stripe Billing, Firebase Phone Auth OTP, Resend Email, Twilio SMS |
+
+---
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- **Node.js**: v18+
+- **Java**: JDK 17+ (for Spring Boot backend)
+- **MySQL**: 8.0+
+
+### 1. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
 ```
-foodbridge/
-├── frontend/        # React 18 + Vite + Tailwind CSS + Framer Motion
-├── backend/         # Java 17 Spring Boot Backend API Service
-├── database/        # MySQL schema.sql (20 tables) and seed.sql
-└── docs/            # Production API, Deployment & Environment Docs
+
+### 2. Backend Setup
+```bash
+cd backend
+mvn clean install
+mvn spring-boot:run
 ```
+
+### 3. Database Migration
+Import schema and seed data located in `database/schema.sql` and `database/seed.sql`.
+
+---
+
+## 📄 License & Contact
+
+Developed with ❤️ by **somprakash18**  
+GitHub: [https://github.com/somprakash18](https://github.com/somprakash18)
