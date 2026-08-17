@@ -1,15 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Mail, 
   Lock, 
   Phone, 
   ShieldCheck, 
-  Building2, 
-  Utensils, 
-  HeartHandshake, 
-  ShoppingBag, 
-  Truck, 
   CheckCircle2, 
   ArrowRight,
   Clock,
@@ -30,7 +25,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
     email: '',
     phone: '+91 ',
     password: '',
-    otpCode: ''
+    otpCode: '' // Starts 100% empty!
   });
 
   const [otpSent, setOtpSent] = useState(false);
@@ -38,6 +33,17 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Reset modal state on open
+  useEffect(() => {
+    if (isOpen) {
+      setOtpSent(false);
+      setCooldown(0);
+      setErrorMessage('');
+      setSuccessMessage('');
+      setFormData(prev => ({ ...prev, otpCode: '' }));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -59,9 +65,9 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
     }
   };
 
-  // Handle Request Phone OTP with Cooldown
+  // Handle Request Real SMS OTP
   const handleRequestOtp = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
@@ -70,9 +76,10 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
       const res = await FirebasePhoneAuthService.requestPhoneOtp(formData.phone);
       setOtpSent(true);
       setSuccessMessage(res.message);
+      setFormData(prev => ({ ...prev, otpCode: '' })); // Ensure input remains empty
       
-      // Start 60-Second Cooldown Timer
-      setCooldown(60);
+      // Start 45-Second Cooldown Timer
+      setCooldown(45);
       const interval = setInterval(() => {
         setCooldown(prev => {
           if (prev <= 1) {
@@ -84,7 +91,8 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
       }, 1000);
 
     } catch (err) {
-      setErrorMessage(err.message);
+      setOtpSent(false);
+      setErrorMessage(err.message || "Unable to send OTP. Please check your phone number and try again.");
     } finally {
       setLoading(false);
     }
@@ -102,7 +110,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
       localStorage.setItem('foodbridge_jwt_token', res.token);
       onClose();
     } catch (err) {
-      setErrorMessage(err.message);
+      setErrorMessage(err.message || "Invalid OTP code entered. Please check your SMS and try again.");
     } finally {
       setLoading(false);
     }
@@ -138,29 +146,30 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
             <h3 className="text-lg font-black text-slate-900 dark:text-white">
               {authMode === 'LOGIN' ? 'Sign In to FoodBridge' : authMode === 'PHONE_OTP' ? 'Phone SMS Authentication' : 'Create Partner Account'}
             </h3>
-            <p className="text-[11px] text-slate-500">Real Production Auth & Role Authorization</p>
+            <p className="text-[11px] text-slate-500 font-semibold">Real Server-Side OTP & OAuth Engine</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 font-bold p-1">✕</button>
         </div>
 
-        {/* Status Alerts */}
+        {/* Error Notification Banner */}
         {errorMessage && (
-          <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center space-x-2">
+          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center space-x-2.5">
             <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
+        {/* Success Confirmation Banner */}
         {successMessage && (
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center space-x-2">
+          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center space-x-2.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMessage}</span>
           </div>
         )}
 
-        {/* Role Selector Chips */}
+        {/* Role Selection Chips */}
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Select Your Role</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Select Your Account Role</label>
           <div className="grid grid-cols-3 gap-2 text-xs font-extrabold">
             {[
               { key: 'BUYER', label: 'Buyer' },
@@ -183,7 +192,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
           </div>
         </div>
 
-        {/* Real Google OAuth Button */}
+        {/* Google OAuth Button */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
@@ -204,7 +213,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
         </div>
 
         {/* Mode Switcher */}
-        <div className="flex items-center justify-center space-x-4 text-xs font-bold">
+        <div className="flex items-center justify-center space-x-6 text-xs font-bold">
           <button
             type="button"
             onClick={() => setAuthMode('LOGIN')}
@@ -228,6 +237,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
               <label className="text-slate-700 dark:text-slate-300 block mb-1">Phone Number (+91)</label>
               <input
                 type="text"
+                placeholder="+91 98765 43210"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none font-bold text-slate-900 dark:text-white"
@@ -236,12 +246,13 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
               />
             </div>
 
+            {/* OTP Input Field — Rendered ONLY AFTER backend confirms OTP dispatch */}
             {otpSent && (
               <div>
                 <label className="text-slate-700 dark:text-slate-300 block mb-1">Enter 6-Digit SMS OTP</label>
                 <input
                   type="text"
-                  placeholder="e.g. 849201"
+                  placeholder="[ Enter 6-digit OTP ]"
                   value={formData.otpCode}
                   onChange={(e) => setFormData({ ...formData, otpCode: e.target.value })}
                   className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none font-bold text-slate-900 dark:text-white text-center text-base tracking-widest"
@@ -254,18 +265,18 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
             <button
               type="submit"
               disabled={loading || (otpSent && cooldown > 0 && !formData.otpCode)}
-              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2"
+              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2 transition-all"
             >
-              <span>{otpSent ? 'Verify OTP & Log In' : 'Request SMS OTP'}</span>
+              <span>{otpSent ? 'Verify OTP & Log In' : 'Send OTP'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             {otpSent && (
-              <div className="text-center text-[11px] text-slate-400 font-semibold">
+              <div className="text-center text-[11px] text-slate-400 font-semibold pt-1">
                 {cooldown > 0 ? (
-                  <span>Resend OTP available in <strong>{cooldown}s</strong></span>
+                  <span>Resend OTP in <strong>{cooldown} seconds</strong></span>
                 ) : (
-                  <button type="button" onClick={handleRequestOtp} className="text-emerald-600 hover:underline">Resend OTP Now</button>
+                  <button type="button" onClick={handleRequestOtp} className="text-emerald-600 hover:underline font-extrabold">Resend OTP Now</button>
                 )}
               </div>
             )}
@@ -277,6 +288,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
               <label className="text-slate-700 dark:text-slate-300 block mb-1">Email Address</label>
               <input
                 type="email"
+                placeholder="name@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none font-bold text-slate-900 dark:text-white"
@@ -299,7 +311,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = 'BUYE
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2"
+              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2 transition-all"
             >
               <span>Sign In with Email</span>
               <ArrowRight className="w-4 h-4" />

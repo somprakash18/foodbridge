@@ -2,38 +2,48 @@ import { apiClient } from './apiClient';
 
 /**
  * Production Real Phone OTP Authentication Service
- * Enforces rate limiting, 60-second resend cooldown timers, and max 3 verification attempts.
+ * Strictly calls backend SMS provider endpoint.
+ * Zero OTP generation or logging in frontend JavaScript.
  */
 export class FirebasePhoneAuthService {
-  static cooldownTimers = {};
-  static attemptCounts = {};
+  /**
+   * Normalize phone number to E.164 format (+91XXXXXXXXXX)
+   */
+  static normalizePhone(phone) {
+    let clean = phone.replace(/[^0-9+]/g, '');
+    if (!clean.startsWith('+91') && clean.length === 10) {
+      clean = '+91' + clean;
+    }
+    return clean;
+  }
 
   /**
-   * Request real SMS OTP to phone number
+   * Validate Indian E.164 phone format (+91 followed by 10 digits starting with 6-9)
+   */
+  static isValidPhone(phone) {
+    const clean = this.normalizePhone(phone);
+    return /^\+91[6-9]\d{9}$/.test(clean);
+  }
+
+  /**
+   * Request real SMS OTP from server / provider
    */
   static async requestPhoneOtp(phone) {
-    const cleanPhone = phone.trim();
+    const cleanPhone = this.normalizePhone(phone);
 
-    // Check 60-second Resend Cooldown
-    const lastSent = this.cooldownTimers[cleanPhone];
-    if (lastSent && Date.now() - lastSent < 60000) {
-      const remainingSeconds = Math.ceil((60000 - (Date.now() - lastSent)) / 1000);
-      throw new Error(`OTP Resend Cooldown: Please wait ${remainingSeconds} seconds before requesting a new OTP.`);
+    if (!this.isValidPhone(cleanPhone)) {
+      throw new Error("Unable to send OTP. Invalid phone number. Please enter a 10-digit number (+91XXXXXXXXXX).");
     }
 
     try {
-      const res = await apiClient.post('/auth/phone/request-otp', { phone: cleanPhone });
-      this.cooldownTimers[cleanPhone] = Date.now();
-      this.attemptCounts[cleanPhone] = 0;
-      return { success: true, message: res.message || `OTP sent to ${cleanPhone}` };
-    } catch (err) {
-      // Record timestamp for rate limit tracking
-      this.cooldownTimers[cleanPhone] = Date.now();
-      this.attemptCounts[cleanPhone] = 0;
+      const res = await apiClient.post('/auth/phone/send-otp', { phone: cleanPhone });
       return {
         success: true,
-        message: `Real SMS OTP dispatched to ${cleanPhone}. (Expires in 5 minutes)`
+        message: res.message || `OTP sent to +91******${cleanPhone.slice(-4)}`
       };
+    } catch (err) {
+      const serverError = err.response?.data?.error;
+      throw new Error(serverError || "Unable to send OTP. Please check your phone number and try again.");
     }
   }
 
@@ -41,44 +51,28 @@ export class FirebasePhoneAuthService {
    * Verify Phone OTP code with backend verification
    */
   static async verifyPhoneOtp(phone, otpCode, role = 'BUYER') {
-    const cleanPhone = phone.trim();
-    const attempts = (this.attemptCounts[cleanPhone] || 0) + 1;
-    this.attemptCounts[cleanPhone] = attempts;
+    const cleanPhone = this.normalizePhone(phone);
+    const cleanOtp = otpCode.trim();
 
-    if (attempts > 3) {
-      throw new Error("Maximum OTP verification attempts exceeded (3/3). Please request a new OTP.");
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      throw new Error("Please enter a valid 6-digit SMS OTP code.");
     }
 
     try {
       const res = await apiClient.post('/auth/phone/verify-otp', {
         phone: cleanPhone,
-        otp: otpCode,
+        otp: cleanOtp,
         role: role
       });
 
-      delete this.cooldownTimers[cleanPhone];
-      delete this.attemptCounts[cleanPhone];
-      return { success: true, user: res.user, token: res.token };
+      return {
+        success: true,
+        user: res.user,
+        token: res.token
+      };
     } catch (err) {
-      if (otpCode && otpCode.length === 6) {
-        delete this.cooldownTimers[cleanPhone];
-        delete this.attemptCounts[cleanPhone];
-        return {
-          success: true,
-          token: `JWT_SMS_${Date.now()}`,
-          user: {
-            id: Date.now(),
-            name: `Verified Phone User (${cleanPhone.slice(-4)})`,
-            phone: cleanPhone,
-            email: `user.${cleanPhone.replace(/[^0-9]/g, '')}@foodbridge.org`,
-            role: role,
-            isVerified: true,
-            verificationBadge: "SMS OTP VERIFIED",
-            kycStatus: "APPROVED"
-          }
-        };
-      }
-      throw new Error(`Invalid OTP code entered (Attempt ${attempts}/3).`);
+      const serverError = err.response?.data?.error;
+      throw new Error(serverError || "Invalid OTP code entered. Please check your SMS and try again.");
     }
   }
 }
