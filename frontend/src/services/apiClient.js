@@ -46,9 +46,13 @@ export const FoodBridgeApi = {
   login: (credentials) => apiClient.post('/auth/login', credentials),
   register: (userData) => apiClient.post('/auth/register', userData),
   googleAuth: (data) => apiClient.post('/auth/google', data),
-  requestPhoneOtp: (phoneData) => apiClient.post('/auth/phone/request-otp', phoneData),
+  requestPhoneOtp: (phoneData) => apiClient.post('/auth/phone/send-otp', phoneData),
   verifyPhoneOtp: (otpData) => apiClient.post('/auth/phone/verify-otp', otpData),
   getMe: () => apiClient.get('/auth/me'),
+
+  // Role Onboarding
+  onboardBusiness: (data) => apiClient.post('/onboarding/business', data),
+  onboardNgo: (data) => apiClient.post('/onboarding/ngo', data),
 
   // Owner Private Business Profile (403 Forbidden for non-owners)
   getOwnerBusinessProfile: () => apiClient.get('/businesses/me'),

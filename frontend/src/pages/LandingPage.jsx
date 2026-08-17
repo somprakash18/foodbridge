@@ -22,7 +22,11 @@ import {
   Download,
   User,
   ShoppingBag,
-  Info
+  Info,
+  ArrowRight,
+  Users,
+  ShieldAlert,
+  Award
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
@@ -31,7 +35,7 @@ import PdfReceiptModal from '../components/PdfReceiptModal';
 import RegistrationModal from '../components/RegistrationModal';
 import TaxSavingsCalculatorModal from '../components/TaxSavingsCalculatorModal';
 
-export default function LandingPage() {
+export default function LandingPage({ onOpenAuth }) {
   const { user, businessData, isBusinessOwner, logout, t } = useAuth();
   const { listings } = useApp();
   const navigate = useNavigate();
@@ -46,18 +50,124 @@ export default function LandingPage() {
     navigate('/');
   };
 
-  // Business Owner Donations Data
-  const ownerDonations = [
+  // Determine if this is a brand-new restaurant owner with zero stats
+  const isNewAccount = user && user.isNewAccount;
+
+  // Business Owner Donations Data (Empty list if brand new account!)
+  const ownerDonations = isNewAccount ? [] : [
     { id: 'DON-901', item: 'Shahi Paneer & Garlic Naan Bulk Meal', quantity: '25 kg', ngo: 'Food Relief Foundation', date: 'Today, 2:30 PM', taxSaved: '₹2,850', status: 'COMPLETED' },
     { id: 'DON-902', item: 'Artisanal Sourdough & Pastry Assortment', quantity: '15 kg', ngo: 'Hope Shelter Delhi', date: 'Yesterday', taxSaved: '₹1,400', status: 'COMPLETED' },
     { id: 'DON-903', item: 'Hyderabadi Chicken Biryani Surplus', quantity: '40 kg', ngo: 'City Child Care NGO', date: '16 Aug 2026', taxSaved: '₹4,500', status: 'COMPLETED' },
   ];
 
+  // =========================================================================
+  // 1. PUBLIC LANDING VIEW FOR UNAUTHENTICATED FIRST-TIME VISITORS
+  // =========================================================================
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased space-y-16 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        
+        {/* Public Hero Banner */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-8 sm:p-12 text-white shadow-2xl space-y-6">
+          <div className="flex items-center space-x-2 text-emerald-400 font-extrabold text-xs tracking-widest uppercase">
+            <Sparkles className="w-4 h-4" />
+            <span>India's Premium Surplus Food Marketplace</span>
+          </div>
+
+          <div className="max-w-3xl space-y-4">
+            <h1 className="text-3xl sm:text-5xl font-black leading-tight tracking-tight">
+              Turn Surplus Food into <span className="text-emerald-400 underline decoration-emerald-500">Social Impact & Tax Credits</span>
+            </h1>
+            <p className="text-slate-300 text-sm sm:text-base font-medium leading-relaxed">
+              FoodBridge connects restaurants, hotels, bakeries, NGOs, shelters, and individual buyers to rescue fresh surplus meals before expiry with real-time routing, Section 80G tax receipts, and automated matching.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <button
+              onClick={onOpenAuth}
+              className="px-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm shadow-xl flex items-center space-x-2 transition-all hover:scale-105"
+            >
+              <span>Create Free Account</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onOpenAuth}
+              className="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-sm backdrop-blur-md border border-white/20 transition-all"
+            >
+              Log In to Portal
+            </button>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className="space-y-8">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">How FoodBridge Works</h2>
+            <p className="text-slate-500 text-xs sm:text-sm">Real-time surplus food matching in 4 simple steps.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { num: '01', title: 'Post Surplus Food', desc: 'Restaurants & bakeries list extra meals with expiry duration and category.', icon: UtensilsIcon },
+              { num: '02', title: 'Smart Matching', desc: 'Nearby NGOs, shelters, and buyers get instant notification alerts.', icon: Building2 },
+              { num: '03', title: 'QR Verification', desc: 'Secure QR code scan verifies food pickup and prevents claim abuse.', icon: ShieldCheck },
+              { num: '04', title: '80G Tax Credit', desc: 'Generates official 100% tax deductible donation receipts instantly.', icon: Receipt }
+            ].map((step, idx) => (
+              <div key={idx} className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-3 relative">
+                <span className="text-3xl font-black text-emerald-500/20 absolute top-4 right-6">{step.num}</span>
+                <step.icon className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{step.title}</h3>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Marketplace Deals Preview */}
+        <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">Available Surplus Food Preview</h2>
+              <p className="text-xs text-slate-500">Live listings updated in real time</p>
+            </div>
+            <button onClick={onOpenAuth} className="text-xs font-extrabold text-emerald-600 hover:underline">Sign Up to Reserve</button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { title: "Shahi Paneer & Garlic Naan Meal", restaurant: "Haldiram Sweets", price: 49, orig: 280, distance: "2.4 km", tag: "25 kg Left" },
+              { title: "Artisanal Sourdough & Pastry Box", restaurant: "BakeHouse Bakery", price: 79, orig: 320, distance: "1.8 km", tag: "15 kg Left" },
+              { title: "Hyderabadi Chicken Biryani Pot", restaurant: "Paradise Dining", price: 99, orig: 450, distance: "3.1 km", tag: "40 kg Left" }
+            ].map((deal, idx) => (
+              <div key={idx} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-black">{deal.tag}</span>
+                  <span className="text-[10px] text-slate-400 font-bold">📍 {deal.distance}</span>
+                </div>
+                <h4 className="font-black text-sm text-slate-900 dark:text-white">{deal.title}</h4>
+                <p className="text-xs text-slate-500">{deal.restaurant}</p>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                  <span className="font-black text-emerald-600 text-sm">₹{deal.price} <span className="line-through text-slate-400 text-xs">₹{deal.orig}</span></span>
+                  <button onClick={onOpenAuth} className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-extrabold text-xs">Sign Up to Claim</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // 2. AUTHENTICATED USER DASHBOARD VIEW
+  // =========================================================================
   return (
     <div className="min-h-screen bg-[#f3f6f3] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        {/* Main 3-Column Grid matching Sage Green Dashboard UI */}
+        {/* Main 3-Column Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* LEFT SIDEBAR NAVIGATION */}
@@ -67,7 +177,7 @@ export default function LandingPage() {
             <div className="flex items-center space-x-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-slate-800/80 border border-emerald-200/60 dark:border-slate-700">
               <img src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'} alt={user?.name} className="w-11 h-11 rounded-xl object-cover border border-emerald-500" />
               <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">{user?.name || 'Guest User'}</h4>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">{user?.name || 'User'}</h4>
                 <div className="flex items-center space-x-1">
                   <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                   <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">{user?.role || 'BUYER'}</span>
@@ -183,27 +293,29 @@ export default function LandingPage() {
           {/* CENTER DASHBOARD PANEL */}
           <main className="lg:col-span-6 space-y-6">
             
-            {/* Impact Banner Card (Owner View vs User View) */}
+            {/* Impact Banner Card */}
             {isBusinessOwner ? (
               <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 rounded-3xl p-6 text-white shadow-xl space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full bg-white/20 text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md">
-                    Business Owner Impact • {user?.businessName || 'Som Prakash Restaurant'}
+                    Business Owner Impact • {user?.businessName || 'My Restaurant Entity'}
                   </span>
-                  <span className="text-xs font-bold text-emerald-200">100% Tax Deductible (Sec 80G)</span>
+                  <span className="text-xs font-bold text-emerald-200">
+                    {user?.isVerified ? '✓ Verified 80G Eligible' : 'Verification Review Pending'}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-center py-2">
                   <div className="bg-white/10 rounded-2xl p-3 backdrop-blur-xs">
-                    <div className="text-2xl font-black">26</div>
+                    <div className="text-2xl font-black">{isNewAccount ? '0' : '26'}</div>
                     <div className="text-[10px] text-emerald-100 font-semibold">Total Donations</div>
                   </div>
                   <div className="bg-white/10 rounded-2xl p-3 backdrop-blur-xs">
-                    <div className="text-2xl font-black">₹8,750</div>
+                    <div className="text-2xl font-black">{isNewAccount ? '₹0' : '₹8,750'}</div>
                     <div className="text-[10px] text-emerald-100 font-semibold">Tax Saved</div>
                   </div>
                   <div className="bg-white/10 rounded-2xl p-3 backdrop-blur-xs">
-                    <div className="text-2xl font-black">18</div>
+                    <div className="text-2xl font-black">{isNewAccount ? '0' : '18'}</div>
                     <div className="text-[10px] text-emerald-100 font-semibold">Shelters Helped</div>
                   </div>
                 </div>
@@ -259,7 +371,7 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* Recent Donations Table / Recent Community Deals */}
+            {/* Recent Donations Table / Empty State for Brand New Accounts */}
             {isBusinessOwner ? (
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4">
                 <div className="flex items-center justify-between">
@@ -267,20 +379,36 @@ export default function LandingPage() {
                   <button onClick={() => navigate('/restaurant')} className="text-xs font-bold text-emerald-600 hover:underline">View All</button>
                 </div>
 
-                <div className="space-y-3">
-                  {ownerDonations.map((don) => (
-                    <div key={don.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs">
-                      <div className="space-y-0.5">
-                        <div className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{don.item}</div>
-                        <div className="text-slate-500 font-medium">{don.quantity} • {don.ngo}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-black text-emerald-600 dark:text-emerald-400">{don.taxSaved} Credit</div>
-                        <div className="text-[10px] text-slate-400 font-semibold">{don.date}</div>
-                      </div>
+                {ownerDonations.length === 0 ? (
+                  <div className="p-8 text-center rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 space-y-3">
+                    <Package className="w-8 h-8 text-slate-400 mx-auto" />
+                    <div>
+                      <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">No donations yet</h4>
+                      <p className="text-[11px] text-slate-400 font-medium">Post your first surplus meal to start accumulating tax credits.</p>
                     </div>
-                  ))}
-                </div>
+                    <button
+                      onClick={() => setDonationModalOpen(true)}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-md"
+                    >
+                      Post Surplus Meal
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {ownerDonations.map((don) => (
+                      <div key={don.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 flex items-center justify-between text-xs">
+                        <div className="space-y-0.5">
+                          <div className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{don.item}</div>
+                          <div className="text-slate-500 font-medium">{don.quantity} • {don.ngo}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-black text-emerald-600 dark:text-emerald-400">{don.taxSaved} Credit</div>
+                          <div className="text-[10px] text-slate-400 font-semibold">{don.date}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4">
@@ -309,28 +437,30 @@ export default function LandingPage() {
 
           </main>
 
-          {/* RIGHT PANELS (Owner Identity vs Normal User Panel) */}
+          {/* RIGHT PANELS */}
           <aside className="lg:col-span-3 space-y-6">
             
-            {/* Owner Business Card (Shown ONLY to Authorized Owners) */}
+            {/* Owner Business Card */}
             {isBusinessOwner ? (
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4">
                 <div className="flex items-center space-x-3">
-                  <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80" alt="Som Prakash Restaurant" className="w-12 h-12 rounded-2xl object-cover border border-slate-200" />
+                  <img src={user?.logoUrl || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80"} alt="Restaurant Entity" className="w-12 h-12 rounded-2xl object-cover border border-slate-200" />
                   <div>
                     <h4 className="text-xs font-black text-slate-900 dark:text-white">{user?.businessName || 'Som Prakash Restaurant'}</h4>
-                    <p className="text-[10px] text-slate-400 font-medium">Chandni Chowk Main Rd, Delhi</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{user?.address || 'Chandni Chowk Main Rd, Delhi'}</p>
                   </div>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 text-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
                     <span>FSSAI License:</span>
-                    <span className="font-bold text-slate-900 dark:text-white">10019011006542</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{user?.fssaiLicense || '10019011006542'}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
                     <span>Status:</span>
-                    <span className="font-bold text-emerald-600">VERIFIED DONOR</span>
+                    <span className={`font-bold ${user?.isVerified ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {user?.isVerified ? 'VERIFIED DONOR' : 'VERIFICATION PENDING'}
+                    </span>
                   </div>
                 </div>
 
@@ -392,5 +522,15 @@ export default function LandingPage() {
       <RegistrationModal isOpen={donationModalOpen} onClose={() => setDonationModalOpen(false)} initialRole="RESTAURANT" />
       <TaxSavingsCalculatorModal isOpen={taxModalOpen} onClose={() => setTaxModalOpen(false)} />
     </div>
+  );
+}
+
+function UtensilsIcon(props) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2v6a6 6 0 0 1-6 6v8" />
+      <path d="M6 2v20" />
+      <path d="M10 2v10" />
+    </svg>
   );
 }

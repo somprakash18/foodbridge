@@ -47,100 +47,62 @@ export const TRANSLATIONS = {
     login: "साइन इन / साइन अप",
     logout: "लॉगआउट",
     searchPlaceholder: "भोजन, रेस्तरां, एनजीओ खोजें..."
-  },
-  BN: {
-    brand: "ফুডব্রিজ",
-    tagline: "উদ্বৃত্ত খাবার মার্কেটপ্লেস",
-    home: "হোম",
-    marketplace: "মার্কেটপ্লেস",
-    map: "লাইভ ম্যাপ",
-    ngoPortal: "এনজিও পোর্টাল",
-    restaurantPortal: "রেস্তোরাঁ পোর্টাল",
-    deliveryPortal: "ডেলিভারি পার্টনার",
-    adminPortal: "অ্যাডমিন প্যানেল",
-    impact: "ইমপ্যাক্ট পরিসংখ্যান",
-    eventRescue: "বিবাহ ও অনুষ্ঠান উদ্ধার",
-    campusRescue: "ক্যাম্পাস ফুড রেসকিউ",
-    community: "কমিউনিটি ও স্ট্রিকস",
-    makeDonation: "খাবার দান করুন",
-    sosEmergency: "জরুরী SOS",
-    switchRole: "রোল পরিবর্তন করুন",
-    wallet: "ওয়ালেট",
-    login: "সাইন ইন করুন",
-    logout: "লগআউট",
-    searchPlaceholder: "খাবার, রেস্তোরাঁ, এনজিও খুঁজুন..."
-  },
-  TA: {
-    brand: "ஃபுட்பிரிட்ஜ்",
-    tagline: "உணவு சந்தை",
-    home: "முகப்பு",
-    marketplace: "சந்தை",
-    map: "நேரலை வரைபடம்",
-    ngoPortal: "தண்டு போர்ட்டல்",
-    restaurantPortal: "உணவக போர்ட்டல்",
-    deliveryPortal: "டெலிவரி பார்ட்னர்",
-    adminPortal: "நிர்வாகி பேனல்",
-    impact: "தாக்கம் புள்ளிவிவரங்கள்",
-    eventRescue: "திருமண உணவு மீட்பு",
-    campusRescue: "கேம்பஸ் உணவு மீட்பு",
-    community: "சமூகம்",
-    makeDonation: "உணவு தானம் செய்",
-    sosEmergency: "அவசர SOS",
-    switchRole: "பங்கு மாறு",
-    wallet: "வாலெட்",
-    login: "உள்நுழை",
-    logout: "வெளியேறு",
-    searchPlaceholder: "உணவு, உணவகம், என்ஜிஓ தேடுங்கள்..."
   }
 };
 
 export function AuthProvider({ children }) {
   const [lang, setLang] = useState('EN');
 
-  // Authenticated User State (Null when unauthenticated, or user object)
-  const [user, setUser] = useState({
-    id: 1,
-    name: 'Som Prakash',
-    email: 'somprakash@foodbridge.org',
-    phone: '+91 98765 43210',
-    role: 'OWNER_ADMIN', // USER, DONOR, RESTAURANT_OWNER, OWNER_ADMIN, NGO, SHELTER, ADMIN
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-    isVerified: true,
-    verificationBadge: 'VERIFIED BUSINESS OWNER',
-    businessName: 'Som Prakash Restaurant & Dining',
-    kycStatus: 'APPROVED'
+  // Authenticated User State (Starts NULL if not logged in!)
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem('foodbridge_jwt_token');
+    const storedUser = localStorage.getItem('foodbridge_user_profile');
+    if (token && storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null; // Unauthenticated state for first-time visitors!
   });
 
   const [businessData, setBusinessData] = useState(null);
 
-  // Sync role to localStorage for API header injection
+  // Sync user state to localStorage
   useEffect(() => {
-    if (user?.role) {
-      localStorage.setItem('foodbridge_user_role', user.role);
+    if (user) {
+      localStorage.setItem('foodbridge_user_role', user.role || 'USER');
       localStorage.setItem('foodbridge_user_id', user.id || 1);
+      localStorage.setItem('foodbridge_user_profile', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('foodbridge_user_role');
+      localStorage.removeItem('foodbridge_user_id');
+      localStorage.removeItem('foodbridge_user_profile');
     }
   }, [user]);
 
-  // Fetch Business Data ONLY if user is verified owner
+  // Fetch Business Data ONLY if user is authorized owner
   useEffect(() => {
-    const isOwnerRole = user?.role === 'OWNER_ADMIN' || user?.role === 'RESTAURANT_OWNER';
+    const isOwnerRole = user && (user.role === 'OWNER_ADMIN' || user.role === 'RESTAURANT_OWNER');
     if (isOwnerRole) {
-      FoodBridgeApi.getOwnerBusinessProfile()
-        .then(res => setBusinessData(res))
-        .catch(err => {
-          console.info("[Auth Security]: Non-owner request blocked (403 Forbidden)");
-          setBusinessData(null);
-        });
+      if (user.businessData) {
+        setBusinessData(user.businessData);
+      } else {
+        FoodBridgeApi.getOwnerBusinessProfile()
+          .then(res => setBusinessData(res))
+          .catch(() => setBusinessData(null));
+      }
     } else {
       setBusinessData(null);
     }
-  }, [user?.role]);
+  }, [user]);
 
   const switchRole = (newRole) => {
+    if (!user) return;
     setUser(prev => ({
       ...prev,
-      role: newRole,
-      businessName: (newRole === 'OWNER_ADMIN' || newRole === 'RESTAURANT_OWNER') ? 'Som Prakash Restaurant & Dining' : null
+      role: newRole
     }));
   };
 
@@ -154,6 +116,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('foodbridge_jwt_token');
     localStorage.removeItem('foodbridge_user_role');
     localStorage.removeItem('foodbridge_user_id');
+    localStorage.removeItem('foodbridge_user_profile');
     setUser(null);
     setBusinessData(null);
   };
@@ -166,6 +129,7 @@ export function AuthProvider({ children }) {
       user,
       setUser,
       businessData,
+      setBusinessData,
       isBusinessOwner,
       switchRole,
       logout,
