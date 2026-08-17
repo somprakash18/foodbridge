@@ -1,632 +1,467 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Package, Truck, MapPin, Clock, ArrowRight, Check,
-  Utensils, Building2, Receipt, BarChart3, Leaf, ChevronRight,
-  Sparkles, HeartHandshake, ShoppingBag, ShieldCheck
-} from "lucide-react";
-import { useApp } from "../context/AppContext";
-import { useAuth } from "../context/AuthContext";
-import LiveMap from "../components/LiveMap";
-import RegistrationModal from "../components/RegistrationModal";
-import AiAssistantModal from "../components/AiAssistantModal";
-
-const FONTS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-`;
-
-const manifestRows = [
-  { time: "07:42", from: "Cedar Street Bakery", to: "Riverside Shelter", item: "Bread, pastries", status: "EN ROUTE" },
-  { time: "07:55", from: "Green Leaf Grocers", to: "Second Harvest Food Bank", item: "Produce, dairy", status: "CLAIMED" },
-  { time: "08:10", from: "Marco's Trattoria", to: "St. Anne's Kitchen", item: "Pasta, sauces", status: "SCHEDULED" },
-  { time: "08:22", from: "Sunrise Diner", to: "Downtown Mission", item: "Baked goods", status: "EN ROUTE" },
-  { time: "08:30", from: "Corner Market", to: "Hope Family Shelter", item: "Produce", status: "CLAIMED" },
-  { time: "08:47", from: "Blue Fig Cafe", to: "Riverside Shelter", item: "Sandwiches, soup", status: "SCHEDULED" },
-  { time: "09:03", from: "Green Leaf Grocers", to: "Third Street Pantry", item: "Bread, canned goods", status: "EN ROUTE" },
-  { time: "09:15", from: "Marco's Trattoria", to: "Second Harvest Food Bank", item: "Pasta, sauces", status: "CLAIMED" },
-];
-
-const statusStyle = {
-  "EN ROUTE": { color: "#E8A33D", label: "EN ROUTE" },
-  "CLAIMED": { color: "#2F5233", label: "CLAIMED" },
-  "SCHEDULED": { color: "#8A7458", label: "SCHEDULED" },
-};
-
-function useManifestTicker(rowCount, visible) {
-  const [start, setStart] = useState(0);
-  useEffect(() => {
-    const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-    const id = setInterval(() => {
-      setStart((s) => (s + 1) % rowCount);
-    }, 2800);
-    return () => clearInterval(id);
-  }, [rowCount]);
-  const rows = [];
-  for (let i = 0; i < visible; i++) rows.push(manifestRows[(start + i) % rowCount]);
-  return rows;
-}
-
-function ManifestBoard() {
-  const rows = useManifestTicker(manifestRows.length, 5);
-  return (
-    <div
-      style={{
-        background: "#1F2A1F",
-        border: "1px solid #3A4A3A",
-        borderRadius: "16px",
-        overflow: "hidden",
-        boxShadow: "0 30px 60px -20px rgba(31,42,31,0.45)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 18px",
-          borderBottom: "1px solid #3A4A3A",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "11px",
-            letterSpacing: "0.14em",
-            color: "#B9C4B4",
-          }}
-        >
-          MANIFEST — TODAY'S LIVE ROUTES
-        </span>
-        <span
-          style={{
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            background: "#E8A33D",
-            boxShadow: "0 0 0 4px rgba(232,163,61,0.18)",
-          }}
-        />
-      </div>
-      <div>
-        {rows.map((r, i) => (
-          <div
-            key={r.time + r.from + i}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "52px 1fr 22px 1fr 92px",
-              gap: "10px",
-              alignItems: "center",
-              padding: "13px 18px",
-              borderBottom: i === rows.length - 1 ? "none" : "1px solid #2A362A",
-              fontFamily: "'IBM Plex Mono', monospace",
-            }}
-          >
-            <span style={{ color: "#8A9A85", fontSize: "12px" }}>{r.time}</span>
-            <span style={{ color: "#F1EEE4", fontSize: "12.5px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {r.from}
-            </span>
-            <ChevronRight size={13} color="#5C6B57" />
-            <span style={{ color: "#D8D2C2", fontSize: "12.5px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {r.to}
-            </span>
-            <span
-              style={{
-                fontSize: "10.5px",
-                letterSpacing: "0.06em",
-                color: statusStyle[r.status].color,
-                textAlign: "right",
-                fontWeight: 600
-              }}
-            >
-              {r.status}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Eyebrow({ children }) {
-  return (
-    <div
-      style={{
-        fontFamily: "'IBM Plex Mono', monospace",
-        fontSize: "11.5px",
-        letterSpacing: "0.16em",
-        color: "#8A7458",
-        textTransform: "uppercase",
-        marginBottom: "14px",
-        fontWeight: 600
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function SectionTitle({ children, dark }) {
-  return (
-    <h2
-      style={{
-        fontFamily: "'Fraunces', serif",
-        fontWeight: 600,
-        fontSize: "clamp(28px, 3.4vw, 40px)",
-        color: dark ? "#F1EEE4" : "#1F2A1F",
-        lineHeight: 1.15,
-        letterSpacing: "-0.01em",
-      }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function Card({ icon: Icon, title, text, accent }) {
-  return (
-    <div
-      style={{
-        background: "#FFFFFF",
-        border: "1px solid #E4DFD1",
-        borderRadius: "16px",
-        padding: "26px 24px",
-      }}
-    >
-      <div
-        style={{
-          width: "42px",
-          height: "42px",
-          borderRadius: "12px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: accent ? "#FBEFDB" : "#E9EFE7",
-          marginBottom: "16px",
-        }}
-      >
-        <Icon size={20} color={accent ? "#B5791F" : "#2F5233"} />
-      </div>
-      <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: "16px", color: "#1F2A1F", marginBottom: "6px" }}>
-        {title}
-      </h3>
-      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", color: "#5C5648", lineHeight: 1.6 }}>
-        {text}
-      </p>
-    </div>
-  );
-}
-
-function StepRow({ number, title, text, last }) {
-  return (
-    <div style={{ display: "flex", gap: "16px" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div
-          style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "50%",
-            background: "#1F2A1F",
-            color: "#F1EEE4",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "13px",
-            fontWeight: 600,
-            flexShrink: 0,
-          }}
-        >
-          {number}
-        </div>
-        {!last && <div style={{ width: "1px", flex: 1, background: "#D8D2C2", marginTop: "6px" }} />}
-      </div>
-      <div style={{ paddingBottom: last ? 0 : "26px" }}>
-        <h4 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: "15px", color: "#1F2A1F", marginBottom: "4px" }}>
-          {title}
-        </h4>
-        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "13.5px", color: "#5C5648", lineHeight: 1.6, maxWidth: "340px" }}>
-          {text}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function PriceCard({ tag, name, price, unit, features, highlight, onSelect }) {
-  return (
-    <div
-      style={{
-        background: highlight ? "#1F2A1F" : "#FFFFFF",
-        border: highlight ? "1px solid #1F2A1F" : "1px solid #E4DFD1",
-        borderRadius: "16px",
-        padding: "28px 24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "18px",
-      }}
-    >
-      <div>
-        <div
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "10.5px",
-            letterSpacing: "0.12em",
-            color: highlight ? "#B9C4B4" : "#8A7458",
-            marginBottom: "10px",
-            fontWeight: 600
-          }}
-        >
-          {tag}
-        </div>
-        <h3 style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: "20px", color: highlight ? "#F1EEE4" : "#1F2A1F" }}>
-          {name}
-        </h3>
-      </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-        <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: "32px", color: highlight ? "#F1EEE4" : "#1F2A1F" }}>
-          {price}
-        </span>
-        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: "13px", color: highlight ? "#8A9A85" : "#8A7458" }}>{unit}</span>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
-        {features.map((f) => (
-          <div key={f} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-            <Check size={14} color={highlight ? "#E8A33D" : "#2F5233"} style={{ marginTop: "2px", flexShrink: 0 }} />
-            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: "13.5px", color: highlight ? "#D8D2C2" : "#3A3527", lineHeight: 1.5 }}>
-              {f}
-            </span>
-          </div>
-        ))}
-      </div>
-      <button
-        onClick={onSelect}
-        style={{
-          width: "100%",
-          padding: "12px",
-          borderRadius: "10px",
-          border: "none",
-          background: highlight ? "#E8A33D" : "#1F2A1F",
-          color: highlight ? "#1F2A1F" : "#F1EEE4",
-          fontWeight: 600,
-          fontFamily: "'Inter', sans-serif",
-          fontSize: "13px",
-          cursor: "pointer"
-        }}
-      >
-        Get Started
-      </button>
-    </div>
-  );
-}
-
-function Counter({ value, label }) {
-  return (
-    <div style={{ textAlign: "left" }}>
-      <div
-        style={{
-          fontFamily: "'IBM Plex Mono', monospace",
-          fontSize: "clamp(30px, 4vw, 44px)",
-          fontWeight: 600,
-          color: "#1F2A1F",
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {value}
-      </div>
-      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: "13px", color: "#5C5648", marginTop: "4px" }}>{label}</div>
-    </div>
-  );
-}
+  LayoutDashboard,
+  MapPin,
+  MessageSquare,
+  FileText,
+  Package,
+  Receipt,
+  Settings,
+  LogOut,
+  Plus,
+  ArrowRight,
+  ShieldCheck,
+  Building2,
+  Utensils,
+  ChevronRight,
+  Play,
+  ArrowLeft,
+  Search,
+  Sparkles
+} from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import RegistrationModal from '../components/RegistrationModal';
+import LiveMap from '../components/LiveMap';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { switchRole } = useAuth();
+  const { listings, addListing } = useApp();
+  const { user, logout } = useAuth();
 
+  const [activeNav, setActiveNav] = useState('Dashboard');
+  const [makeDonationOpen, setMakeDonationOpen] = useState(false);
   const [regModalOpen, setRegModalOpen] = useState(false);
-  const [regRole, setRegRole] = useState("RESTAURANT");
-  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [selectedShelter, setSelectedShelter] = useState(null);
 
-  const handleOpenSignup = (role = "RESTAURANT") => {
-    setRegRole(role);
-    setRegModalOpen(true);
-  };
+  // Form state for Make Donation modal
+  const [newItem, setNewItem] = useState({
+    title: 'Chicken Curry & Rice',
+    shelter: 'Demo Shelter 1',
+    category: 'Cooked Meals',
+    quantity: '25 kg',
+    value: '$450',
+    taxCredit: '$112'
+  });
 
-  const handleRoleNavigate = (roleKey, path) => {
-    switchRole(roleKey);
-    navigate(path);
+  const donations = [
+    { id: 1, foodItem: 'Chicken curry', date: 'Nov 23, 2025', shelter: 'Demo Shelter 1', category: 'Other', quantity: '20 kg', value: '$400', taxCredit: '$100' },
+    { id: 2, foodItem: 'Chicken curry', date: 'Nov 19, 2025', shelter: 'Demo Shelter 2', category: 'Other', quantity: '20 kg', value: '$400', taxCredit: '$100' },
+    { id: 3, foodItem: 'Apples', date: 'Nov 16, 2025', shelter: 'Demo Shelter 1', category: 'Fruits', quantity: '20 lbs', value: '$40', taxCredit: '$10' },
+    { id: 4, foodItem: 'Apples', date: 'Nov 15, 2025', shelter: 'Demo Shelter 1', category: 'Fruits', quantity: '20 lbs', value: '$40', taxCredit: '$10' },
+    { id: 5, foodItem: 'Chicken curry', date: 'Nov 14, 2025', shelter: 'Demo Shelter 1', category: 'Other', quantity: '20 kg', value: '$400', taxCredit: '$100' },
+  ];
+
+  const handleCreateDonation = (e) => {
+    e.preventDefault();
+    addListing({
+      title: newItem.title,
+      type: 'surplus',
+      quantity: newItem.quantity,
+      donor: 'Demo Restaurant',
+      location: 'New York, NY',
+      distance: '1.2 km',
+      expiry: '4 hours left',
+      claimed: false,
+      tag: 'Fresh Cooked',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'
+    });
+    setMakeDonationOpen(false);
   };
 
   return (
-    <div style={{ background: "#F7F5EF", minHeight: "100vh" }} className="dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-      <style>{FONTS}</style>
+    <div className="min-h-screen bg-[#F4F6F0] font-sans text-slate-800 flex flex-col lg:flex-row antialiased">
+      
+      {/* ------------------------------------------------------------- */}
+      {/* LEFT SIDEBAR NAVIGATION */}
+      {/* ------------------------------------------------------------- */}
+      <aside className="w-full lg:w-64 bg-[#F8FAF5] border-r border-[#E2E8DC] flex flex-col justify-between shrink-0 p-5">
+        <div>
+          {/* Logo */}
+          <div className="flex items-center space-x-2.5 px-2 mb-8">
+            <div className="w-8 h-8 rounded-lg bg-[#2E5B27] flex items-center justify-center text-white shadow-sm">
+              <Utensils className="w-4 h-4" />
+            </div>
+            <span className="text-lg font-black tracking-tight text-[#1E3A1A] uppercase">
+              FOODBRIDGE
+            </span>
+          </div>
 
-      {/* HERO */}
-      <section style={{ maxWidth: "1120px", margin: "0 auto", padding: "64px 24px 80px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "48px" }} className="fb-hero-grid">
-          <div>
-            <Eyebrow>Surplus food, rerouted live</Eyebrow>
-            <h1
-              style={{
-                fontFamily: "'Fraunces', serif",
-                fontWeight: 600,
-                fontSize: "clamp(34px, 5vw, 54px)",
-                lineHeight: 1.08,
-                color: "#1F2A1F",
-                letterSpacing: "-0.015em",
-                marginBottom: "22px",
-              }}
-              className="dark:text-white"
-            >
-              The last mile between a full kitchen and an empty pantry.
-            </h1>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "17px", color: "#5C5648", lineHeight: 1.65, maxWidth: "480px", marginBottom: "32px" }} className="dark:text-slate-300">
-              FoodBridge turns unsold restaurant, bakery, and grocery food into scheduled pickups for shelters and food banks nearby — automatically, safely, and in minutes. Free for nonprofits. Simple for businesses.
-            </p>
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          {/* Nav Section: OVERVIEW */}
+          <div className="mb-6">
+            <div className="px-3 mb-2 text-[10.5px] font-extrabold tracking-widest text-[#7C8E76] uppercase">
+              Overview
+            </div>
+            <nav className="space-y-1">
+              {[
+                { name: 'Dashboard', icon: LayoutDashboard },
+                { name: 'Shelter Map', icon: MapPin },
+                { name: 'Messages', icon: MessageSquare },
+                { name: 'Donation History', icon: FileText },
+                { name: 'Items', icon: Package }
+              ].map((item) => {
+                const Icon = item.icon;
+                const active = activeNav === item.name;
+                return (
+                  <button
+                    key={item.name}
+                    onClick={() => setActiveNav(item.name)}
+                    className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                      active
+                        ? 'bg-[#E3EEDC] text-[#244E1E] shadow-xs font-bold'
+                        : 'text-[#5C6E56] hover:bg-[#EEF4E9] hover:text-[#244E1E]'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${active ? 'text-[#244E1E]' : 'text-[#7C8E76]'}`} />
+                    <span>{item.name}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Nav Section: TAX */}
+          <div className="mb-6">
+            <div className="px-3 mb-2 text-[10.5px] font-extrabold tracking-widest text-[#7C8E76] uppercase">
+              Tax
+            </div>
+            <nav className="space-y-1">
               <button
-                onClick={() => handleOpenSignup("RESTAURANT")}
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: "14.5px",
-                  fontWeight: 600,
-                  color: "#1F2A1F",
-                  background: "#E8A33D",
-                  border: "none",
-                  borderRadius: "10px",
-                  padding: "13px 22px",
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
+                onClick={() => setActiveNav('Tax Overview')}
+                className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeNav === 'Tax Overview'
+                    ? 'bg-[#E3EEDC] text-[#244E1E] shadow-xs font-bold'
+                    : 'text-[#5C6E56] hover:bg-[#EEF4E9] hover:text-[#244E1E]'
+                }`}
               >
-                List surplus food <ArrowRight size={15} />
+                <Receipt className="w-4 h-4 text-[#7C8E76]" />
+                <span>Tax Overview</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* Nav Section: SETTINGS */}
+          <div>
+            <div className="px-3 mb-2 text-[10.5px] font-extrabold tracking-widest text-[#7C8E76] uppercase">
+              Settings
+            </div>
+            <nav className="space-y-1">
+              <button
+                onClick={() => setActiveNav('Settings')}
+                className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  activeNav === 'Settings'
+                    ? 'bg-[#E3EEDC] text-[#244E1E] shadow-xs font-bold'
+                    : 'text-[#5C6E56] hover:bg-[#EEF4E9] hover:text-[#244E1E]'
+                }`}
+              >
+                <Settings className="w-4 h-4 text-[#7C8E76]" />
+                <span>Settings</span>
               </button>
               <button
-                onClick={() => navigate("/map")}
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: "14.5px",
-                  fontWeight: 600,
-                  color: "#1F2A1F",
-                  background: "transparent",
-                  border: "1px solid #C9C2AC",
-                  borderRadius: "10px",
-                  padding: "13px 22px",
-                  cursor: "pointer",
-                }}
-                className="dark:text-white dark:border-slate-700"
+                onClick={logout}
+                className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-[#5C6E56] hover:bg-rose-50 hover:text-rose-700 transition-all"
               >
-                Find food nearby (Live Map)
+                <LogOut className="w-4 h-4 text-[#7C8E76]" />
+                <span>Logout</span>
               </button>
-            </div>
+            </nav>
           </div>
-          <ManifestBoard />
         </div>
-      </section>
+      </aside>
 
-      {/* LIVE MAP PREVIEW */}
-      <section style={{ maxWidth: "1120px", margin: "0 auto", padding: "0 24px 80px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "20px" }}>
+      {/* ------------------------------------------------------------- */}
+      {/* MAIN CONTENT AREA */}
+      {/* ------------------------------------------------------------- */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 overflow-y-auto">
+        
+        {activeNav === 'Shelter Map' ? (
+          <div className="bg-white p-6 rounded-2xl border border-[#E2E8DC] shadow-sm space-y-4">
+            <h2 className="text-xl font-bold text-[#1E3A1A]">Shelter & Surplus Map</h2>
+            <LiveMap height="h-[600px]" />
+          </div>
+        ) : (
+          <>
+            {/* Impact Banner Container */}
+            <div className="bg-[#DCECD4] rounded-2xl p-6 border border-[#CDDF2] shadow-xs space-y-6">
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl font-extrabold text-[#1E3A1A]">Your Impact</h1>
+                <button
+                  onClick={() => setMakeDonationOpen(true)}
+                  className="flex items-center space-x-1.5 bg-white hover:bg-slate-50 text-[#1E3A1A] px-4 py-2 rounded-xl text-xs font-extrabold border border-[#C5D9BA] shadow-xs transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Make Donation</span>
+                </button>
+              </div>
+
+              {/* 3 Metric Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl p-5 border border-[#D5E4CC] shadow-xs">
+                  <div className="text-3xl font-black text-[#1E3A1A] mb-1">26</div>
+                  <div className="text-xs font-medium text-[#65795E]">Total Donations</div>
+                </div>
+
+                <div className="bg-white rounded-xl p-5 border border-[#D5E4CC] shadow-xs">
+                  <div className="text-3xl font-black text-[#1E3A1A] mb-1">$2851</div>
+                  <div className="text-xs font-medium text-[#65795E]">Value Donated</div>
+                </div>
+
+                <div className="bg-white rounded-xl p-5 border border-[#D5E4CC] shadow-xs">
+                  <div className="text-3xl font-black text-[#1E3A1A] mb-1">18</div>
+                  <div className="text-xs font-medium text-[#65795E]">Shelters Helped</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Donations Table Section */}
+            <div className="bg-white rounded-2xl border border-[#E2E8DC] shadow-xs overflow-hidden">
+              <div className="p-5 flex items-center justify-between border-b border-[#F0F4EC]">
+                <h2 className="text-base font-bold text-[#1E3A1A]">Recent Donations</h2>
+                <button
+                  onClick={() => setActiveNav('Donation History')}
+                  className="text-xs font-bold text-[#4B7A42] hover:underline flex items-center space-x-1"
+                >
+                  <span>View All</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#F0F4EC] bg-[#FAFCF8] text-[10.5px] font-extrabold text-[#7C8E76] uppercase tracking-wider">
+                      <th className="py-3.5 px-5">Food Item</th>
+                      <th className="py-3.5 px-5">Shelter</th>
+                      <th className="py-3.5 px-5">Category</th>
+                      <th className="py-3.5 px-5">Quantity</th>
+                      <th className="py-3.5 px-5">Value</th>
+                      <th className="py-3.5 px-5">Tax Credit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F4EC] text-xs">
+                    {donations.map((d) => (
+                      <tr key={d.id} className="hover:bg-[#F8FAF5] transition-colors">
+                        <td className="py-4 px-5">
+                          <div className="font-bold text-[#1E3A1A]">{d.foodItem}</div>
+                          <div className="text-[10px] font-medium text-[#8B9C85]">{d.date}</div>
+                        </td>
+                        <td className="py-4 px-5 font-semibold text-[#3A4E35]">{d.shelter}</td>
+                        <td className="py-4 px-5">
+                          <span className="px-2.5 py-1 rounded-full bg-[#E2F0D9] text-[#2E5B27] text-[11px] font-bold">
+                            {d.category}
+                          </span>
+                        </td>
+                        <td className="py-4 px-5 font-semibold text-[#3A4E35]">{d.quantity}</td>
+                        <td className="py-4 px-5 font-bold text-[#1E3A1A]">{d.value}</td>
+                        <td className="py-4 px-5 font-bold text-[#2E5B27]">{d.taxCredit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Tax Benefit Bottom Banner */}
+              <div className="p-4 bg-[#EDF5E8] border-t border-[#DDECD4] flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-lg bg-[#C5E0B8] flex items-center justify-center text-[#2E5B27] shrink-0">
+                  <Receipt className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-[#1E3A1A]">All donations qualify for tax benefits</div>
+                  <div className="text-[11px] font-medium text-[#65795E]">Keep donating to maximize your tax credits</div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </main>
+
+      {/* ------------------------------------------------------------- */}
+      {/* RIGHT SIDEBAR / PANEL */}
+      {/* ------------------------------------------------------------- */}
+      <aside className="w-full lg:w-80 bg-[#F8FAF5] border-l border-[#E2E8DC] p-5 space-y-5 shrink-0">
+        
+        {/* Profile Card */}
+        <div className="bg-white rounded-2xl border border-[#E2E8DC] p-4 space-y-3 shadow-xs">
+          <div className="text-sm font-extrabold text-[#1E3A1A]">Demo Restaurant</div>
+          <div className="h-32 rounded-xl overflow-hidden relative">
+            <img
+              src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=60"
+              alt="Demo Restaurant Storefront"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+
+        {/* Urgent Help Needed Card */}
+        <div className="bg-[#EEF6EB] rounded-2xl border border-[#D5E6CF] p-4 space-y-3 shadow-xs">
           <div>
-            <Eyebrow>Live Interactive Network</Eyebrow>
-            <SectionTitle>Surplus Map & Routing</SectionTitle>
+            <div className="text-xs font-extrabold text-[#1E3A1A]">Urgent Help Needed</div>
+            <div className="text-[11px] font-medium text-[#65795E]">These shelters are critically low on supplies</div>
           </div>
-          <Link to="/map" style={{ fontFamily: "'Inter', sans-serif", fontSize: "13px", color: "#2F5233", fontWeight: 600, textDecoration: "none" }} className="dark:text-emerald-400">
-            Open Full Screen Map →
-          </Link>
-        </div>
-        <LiveMap height="h-[480px]" />
-      </section>
 
-      {/* PROBLEM */}
-      <section style={{ background: "#1F2A1F", padding: "80px 24px" }}>
-        <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
-          <Eyebrow>The gap</Eyebrow>
-          <SectionTitle dark>Two sides of the same problem, never talking to each other.</SectionTitle>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1px", background: "#3A4A3A", marginTop: "40px", borderRadius: "16px", overflow: "hidden" }} className="fb-problem-grid">
-            <div style={{ background: "#243024", padding: "32px" }}>
-              <Utensils size={22} color="#E8A33D" style={{ marginBottom: "16px" }} />
-              <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: "17px", color: "#F1EEE4", marginBottom: "12px" }}>
-                What restaurants face
-              </h3>
-              <ul style={darkList}>
-                <li>No fast, trusted way to find a nearby NGO before food goes bad</li>
-                <li>Manual coordination by phone or WhatsApp doesn't scale</li>
-                <li>Unaware that donations are often tax-deductible</li>
-                <li>Liability concerns without proper documentation</li>
-              </ul>
-            </div>
-            <div style={{ background: "#243024", padding: "32px" }}>
-              <Building2 size={22} color="#E8A33D" style={{ marginBottom: "16px" }} />
-              <h3 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: "17px", color: "#F1EEE4", marginBottom: "12px" }}>
-                What shelters face
-              </h3>
-              <ul style={darkList}>
-                <li>Unpredictable, inconsistent food supply week to week</li>
-                <li>Staff time lost cold-calling businesses for donations</li>
-                <li>No visibility into what's available nearby, right now</li>
-                <li>Little say in food type or pickup timing</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="how" style={{ maxWidth: "1120px", margin: "0 auto", padding: "88px 24px" }}>
-        <Eyebrow>How it works</Eyebrow>
-        <SectionTitle>One feed. Two very different jobs to do.</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "56px", marginTop: "44px" }} className="fb-how-grid">
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
-              <Utensils size={18} color="#2F5233" />
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "12px", letterSpacing: "0.1em", color: "#2F5233", fontWeight: 600 }} className="dark:text-emerald-400">
-                FOR RESTAURANTS &amp; STORES
+          <div className="bg-white rounded-xl p-3 border border-[#D8E8D2] flex items-center justify-between">
+            <div>
+              <div className="text-xs font-bold text-[#1E3A1A]">Harbor Haven Shelter</div>
+              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                Critical
               </span>
             </div>
-            <StepRow number="1" title="List what's left over" text="Snap a photo, note quantity, packaging, and pickup window. Takes under a minute." />
-            <StepRow number="2" title="Get matched automatically" text="Nearby verified NGOs and buyers are notified; AI certifies food safety score." />
-            <StepRow number="3" title="Get your receipt & payout" text="A tax-deduction receipt and impact stats land in your inbox after QR pickup." last />
           </div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
-              <Building2 size={18} color="#B5791F" />
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "12px", letterSpacing: "0.1em", color: "#B5791F", fontWeight: 600 }}>
-                FOR SHELTERS &amp; NGOS
-              </span>
+
+          <button
+            onClick={() => setMakeDonationOpen(true)}
+            className="w-full py-2.5 rounded-xl bg-[#68AA37] hover:bg-[#59962C] text-white font-extrabold text-xs shadow-xs transition-all"
+          >
+            Donate Now
+          </button>
+        </div>
+
+        {/* Recent Shelters */}
+        <div className="space-y-3">
+          <div className="text-xs font-extrabold text-[#1E3A1A]">Recent Shelters</div>
+          
+          <div className="space-y-2">
+            {[
+              { name: 'Harbor Haven Shelter' },
+              { name: 'Sunrise Housing' },
+              { name: 'Hope Center Harlem' }
+            ].map((s) => (
+              <div key={s.name} className="bg-white rounded-xl p-3 border border-[#E2E8DC] flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#1E3A1A]">{s.name}</span>
+                <button
+                  onClick={() => setMakeDonationOpen(true)}
+                  className="px-3 py-1 rounded-lg bg-[#EFF6EC] text-[#2E5B27] border border-[#C5E0B8] text-[11px] font-bold hover:bg-[#E2F0D9] transition-all"
+                >
+                  Donate
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setActiveNav('Shelter Map')}
+            className="w-full py-2.5 rounded-xl bg-[#68AA37] hover:bg-[#59962C] text-white font-extrabold text-xs shadow-xs transition-all"
+          >
+            View All Shelters
+          </button>
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="pt-2 space-y-2">
+          <button
+            onClick={() => setRegModalOpen(true)}
+            className="w-full py-2.5 rounded-xl bg-[#1E2D1B] hover:bg-[#2C3E28] text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Exit Demo</span>
+          </button>
+
+          <button
+            onClick={() => window.open('https://youtube.com', '_blank')}
+            className="w-full py-2.5 rounded-xl bg-[#8A9687] hover:bg-[#788475] text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-xs"
+          >
+            <Play className="w-3.5 h-3.5" />
+            <span>Watch Demo Video</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Make Donation Modal */}
+      {makeDonationOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-[#E2E8DC] shadow-xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-[#1E3A1A]">Create Food Donation</h3>
+              <button onClick={() => setMakeDonationOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
-            <StepRow number="1" title="Browse what's nearby" text="A live interactive map feed of surplus food, filterable by distance and category." />
-            <StepRow number="2" title="Claim in one tap" text="No calls, no waiting — first claim locks it in for pickup or volunteer delivery." />
-            <StepRow number="3" title="Pick up on schedule" text="Riders use dynamic QR scanner codes for instant transfer verification." last />
+
+            <form onSubmit={handleCreateDonation} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Food Item Title</label>
+                <input
+                  type="text"
+                  value={newItem.title}
+                  onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#68AA37] outline-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Target Shelter</label>
+                  <select
+                    value={newItem.shelter}
+                    onChange={(e) => setNewItem({ ...newItem, shelter: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#68AA37] outline-none"
+                  >
+                    <option>Demo Shelter 1</option>
+                    <option>Demo Shelter 2</option>
+                    <option>Harbor Haven Shelter</option>
+                    <option>Sunrise Housing</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Category</label>
+                  <select
+                    value={newItem.category}
+                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#68AA37] outline-none"
+                  >
+                    <option>Other</option>
+                    <option>Fruits</option>
+                    <option>Cooked Meals</option>
+                    <option>Bakery</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Quantity</label>
+                  <input
+                    type="text"
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Estimated Value</label>
+                  <input
+                    type="text"
+                    value={newItem.value}
+                    onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setMakeDonationOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#68AA37] text-white font-extrabold hover:bg-[#59962C]"
+                >
+                  Submit Donation
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </section>
+      )}
 
-      {/* FEATURES */}
-      <section style={{ background: "#EFEBDD", padding: "88px 24px" }} className="dark:bg-slate-900">
-        <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
-          <Eyebrow>What's included</Eyebrow>
-          <SectionTitle>Built to remove every excuse not to donate.</SectionTitle>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "16px", marginTop: "40px" }} className="fb-feature-grid">
-            <Card icon={Package} title="One-tap listings" text="Photo, quantity, pickup window — posted in under a minute, from any device." />
-            <Card icon={Truck} title="Automated routing" text="Matches surplus to the nearest verified NGO and handles driver scheduling." accent />
-            <Card icon={Receipt} title="Tax-deduction receipts" text="Every completed donation generates a compliant receipt automatically." />
-            <Card icon={BarChart3} title="Impact reporting" text="Monthly meals-saved and CO2-avoided reports, ready for ESG or PR use." accent />
-            <Card icon={MapPin} title="Real-time nearby feed" text="NGOs see what's available close by, updated the moment it's listed." />
-            <Card icon={Clock} title="Pickup windows & QR Scanner" text="Clear time slots & dynamic QR codes reduce no-shows and ensure accountability." accent />
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="pricing" style={{ maxWidth: "1120px", margin: "0 auto", padding: "88px 24px" }}>
-        <Eyebrow>Pricing</Eyebrow>
-        <SectionTitle>Free where it matters. Simple where it doesn't.</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "18px", marginTop: "40px" }} className="fb-price-grid">
-          <PriceCard
-            tag="NONPROFIT"
-            name="NGO / Shelter"
-            price="Free"
-            unit="forever"
-            features={["Full access to surplus map feed", "One-tap claim & scheduling", "Verified restaurant partners", "Volunteer dispatch tool"]}
-            onSelect={() => handleOpenSignup("NGO")}
-          />
-          <PriceCard
-            tag="SINGLE LOCATION"
-            name="Starter"
-            price="₹1,999"
-            unit="/ month"
-            features={["Unlimited listings", "Automated scheduling", "Tax-deduction receipts", "Razorpay payout wallet"]}
-            highlight
-            onSelect={() => handleOpenSignup("RESTAURANT")}
-          />
-          <PriceCard
-            tag="MULTI-LOCATION"
-            name="Growth"
-            price="₹6,999"
-            unit="/ month"
-            features={["Everything in Starter", "ESG Impact reporting", "Priority AI route optimization", "Multi-branch admin panel"]}
-            onSelect={() => handleOpenSignup("RESTAURANT")}
-          />
-          <PriceCard
-            tag="CHAINS & HOTELS"
-            name="Enterprise"
-            price="Custom"
-            unit="pricing"
-            features={["Everything in Growth", "Spring Boot API access", "Dedicated account manager", "Custom SLAs & verification"]}
-            onSelect={() => handleOpenSignup("RESTAURANT")}
-          />
-        </div>
-      </section>
-
-      {/* IMPACT STATS */}
-      <section id="impact" style={{ background: "#FFFFFF", borderTop: "1px solid #E4DFD1", borderBottom: "1px solid #E4DFD1", padding: "72px 24px" }} className="dark:bg-slate-900 dark:border-slate-800">
-        <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
-          <Eyebrow>Live Network Impact</Eyebrow>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "32px", marginTop: "24px" }} className="fb-counter-grid">
-            <Counter value="18,450+" label="Meals saved and delivered across cities" />
-            <Counter value="46,125 kg" label="CO2 emissions prevented from landfill" />
-            <Counter value="< 1 min" label="Time to list surplus food on mobile or web" />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ padding: "96px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-          <SectionTitle>Ready to reduce waste and feed your community?</SectionTitle>
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "15px", color: "#5C5648", marginTop: "16px", marginBottom: "32px" }} className="dark:text-slate-400">
-            Join as a business or a nonprofit — setup takes under 2 minutes.
-          </p>
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button
-              onClick={() => handleOpenSignup("RESTAURANT")}
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "14.5px",
-                fontWeight: 600,
-                color: "#1F2A1F",
-                background: "#E8A33D",
-                border: "none",
-                borderRadius: "10px",
-                padding: "13px 22px",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              List surplus food <ArrowRight size={15} />
-            </button>
-            <button
-              onClick={() => handleOpenSignup("NGO")}
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "14.5px",
-                fontWeight: 600,
-                color: "#1F2A1F",
-                background: "transparent",
-                border: "1px solid #C9C2AC",
-                borderRadius: "10px",
-                padding: "13px 22px",
-                cursor: "pointer",
-              }}
-              className="dark:text-white dark:border-slate-700"
-            >
-              Claim Food as NGO
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Modals */}
-      <RegistrationModal isOpen={regModalOpen} onClose={() => setRegModalOpen(false)} initialRole={regRole} />
-      <AiAssistantModal isOpen={aiModalOpen} onClose={() => setAiModalOpen(false)} />
-
-      <style>{`
-        @media (min-width: 860px) {
-          .fb-hero-grid { grid-template-columns: 1.05fr 0.95fr !important; align-items: center; }
-          .fb-problem-grid { grid-template-columns: 1fr 1fr !important; }
-          .fb-how-grid { grid-template-columns: 1fr 1fr !important; }
-          .fb-feature-grid { grid-template-columns: repeat(3, 1fr) !important; }
-          .fb-price-grid { grid-template-columns: repeat(4, 1fr) !important; }
-          .fb-counter-grid { grid-template-columns: repeat(3, 1fr) !important; }
-        }
-        button:focus-visible, a:focus-visible {
-          outline: 2px solid #E8A33D;
-          outline-offset: 2px;
-        }
-      `}</style>
+      {/* Registration Modal */}
+      <RegistrationModal isOpen={regModalOpen} onClose={() => setRegModalOpen(false)} />
     </div>
   );
 }
-
-const darkList = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: "13.5px",
-  color: "#B9C4B4",
-  lineHeight: 1.9,
-  paddingLeft: "18px",
-};
