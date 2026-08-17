@@ -17,7 +17,7 @@ import {
   Calculator,
   Menu,
   X,
-  MapPin
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -78,11 +78,14 @@ export default function Navbar() {
                 </div>
               </Link>
 
-              {/* Status Badge */}
-              <div className="hidden md:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[11px] font-bold border border-emerald-200 dark:border-emerald-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Live System</span>
-              </div>
+              {/* Impact Analytics Pill Link */}
+              <Link
+                to="/impact"
+                className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[11px] font-bold border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-all shadow-xs"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Impact Stats</span>
+              </Link>
             </div>
 
             {/* Middle Nav: Active Role Selector & Quick Tools */}
@@ -200,20 +203,6 @@ export default function Navbar() {
               >
                 {theme === 'dark' ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-slate-600" />}
               </button>
-
-              {/* User Profile Avatar */}
-              {user && (
-                <Link
-                  to="/profile"
-                  className="flex items-center space-x-2 p-0.5 rounded-full hover:ring-2 hover:ring-brand-500 transition-all"
-                >
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="w-9 h-9 rounded-full object-cover border-2 border-brand-500 shadow-sm"
-                  />
-                </Link>
-              )}
 
               {/* Mobile Menu Toggle */}
               <button

@@ -13,6 +13,7 @@ import NgoDashboard from './pages/NgoDashboard';
 import BuyerMarketplace from './pages/BuyerMarketplace';
 import DeliveryDashboard from './pages/DeliveryDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
+import ImpactDashboard from './pages/ImpactDashboard';
 import WalletPage from './pages/WalletPage';
 import ReferralPage from './pages/ReferralPage';
 import ProfilePage from './pages/ProfilePage';
@@ -32,6 +33,7 @@ export default function App() {
                 <main>
                   <Routes>
                     <Route path="/" element={<LandingPage />} />
+                    <Route path="/impact" element={<ImpactDashboard />} />
                     <Route path="/restaurant" element={<RestaurantDashboard />} />
                     <Route path="/ngo" element={<NgoDashboard />} />
                     <Route path="/buyer" element={<BuyerMarketplace />} />
