@@ -1,60 +1,91 @@
-import React from 'react';
-import { Bell, Check, X, ShieldAlert, HeartHandshake, ShoppingBag, Truck, Gift } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, CheckCheck, Trash2, HeartHandshake, Truck, ShieldCheck, Clock } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function NotificationCenter({ isOpen, onClose }) {
-  const { notifications } = useApp();
+  const { notifications, markAllNotificationsRead } = useApp();
+  const [activeTab, setActiveTab] = useState('ALL');
 
   if (!isOpen) return null;
 
-  const getIcon = (type) => {
-    switch (type) {
-      case 'FOOD_ALERT': return <ShieldAlert className="w-4 h-4 text-emerald-500" />;
-      case 'ORDER_UPDATE': return <ShoppingBag className="w-4 h-4 text-blue-500" />;
-      case 'DONATION_UPDATE': return <HeartHandshake className="w-4 h-4 text-rose-500" />;
-      case 'DELIVERY_UPDATE': return <Truck className="w-4 h-4 text-amber-500" />;
-      case 'REFERRAL': return <Gift className="w-4 h-4 text-purple-500" />;
-      default: return <Bell className="w-4 h-4 text-brand-500" />;
-    }
-  };
+  const filteredNotifs = notifications.filter(n => {
+    if (activeTab === 'ALL') return true;
+    if (activeTab === 'UNREAD') return n.unread;
+    return true;
+  });
 
   return (
-    <div className="fixed top-20 right-4 sm:right-8 z-50 w-full max-w-sm glass-card rounded-3xl p-4 shadow-soft-lg border border-slate-200 dark:border-slate-800 space-y-4 animate-in fade-in slide-in-from-top-2 duration-150">
+    <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-white dark:bg-slate-900 shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col justify-between animate-in slide-in-from-right duration-200">
       
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-        <div className="flex items-center space-x-2">
-          <Bell className="w-4 h-4 text-brand-600 dark:text-brand-400" />
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Notifications</h3>
+      {/* Header */}
+      <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/80">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+            <Bell className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Notifications</h3>
+            <p className="text-[10px] text-slate-400">Live Platform Updates</p>
+          </div>
         </div>
-        <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
-          <X className="w-4 h-4" />
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 font-bold p-1">✕</button>
+      </div>
+
+      {/* Action Controls */}
+      <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold bg-slate-50 dark:bg-slate-900">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setActiveTab('ALL')}
+            className={`px-3 py-1 rounded-xl ${activeTab === 'ALL' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setActiveTab('UNREAD')}
+            className={`px-3 py-1 rounded-xl ${activeTab === 'UNREAD' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}
+          >
+            Unread
+          </button>
+        </div>
+
+        <button
+          onClick={markAllNotificationsRead}
+          className="text-emerald-600 hover:underline flex items-center space-x-1"
+        >
+          <CheckCheck className="w-3.5 h-3.5" />
+          <span>Mark all read</span>
         </button>
       </div>
 
-      <div className="max-h-80 overflow-y-auto space-y-2">
-        {notifications.map((n) => (
-          <div
-            key={n.id}
-            className={`p-3 rounded-2xl border transition-colors ${
-              n.unread
-                ? 'bg-brand-50/50 dark:bg-brand-950/40 border-brand-200 dark:border-brand-800/60'
-                : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
-            }`}
-          >
-            <div className="flex items-start space-x-3">
-              <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
-                {getIcon(n.type)}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">{n.title}</h4>
-                  <span className="text-[10px] text-slate-400">{n.time}</span>
-                </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{n.message}</p>
-              </div>
-            </div>
+      {/* List */}
+      <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+        {filteredNotifs.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-xs font-semibold">
+            No notifications found
           </div>
-        ))}
+        ) : (
+          filteredNotifs.map((n) => (
+            <div
+              key={n.id}
+              className={`p-3.5 rounded-2xl border text-xs space-y-1 transition-all ${
+                n.unread
+                  ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800'
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800'
+              }`}
+            >
+              <div className="flex items-center justify-between font-extrabold text-slate-900 dark:text-white">
+                <span>{n.title}</span>
+                <span className="text-[9.5px] text-slate-400 font-semibold">{n.time}</span>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 font-medium text-[11px]">{n.message}</p>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-3 border-t border-slate-100 dark:border-slate-800 text-center text-xs font-bold text-slate-400">
+        FoodBridge Real-Time Dispatch System
       </div>
 
     </div>

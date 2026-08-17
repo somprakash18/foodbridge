@@ -21,7 +21,12 @@ import {
   Globe,
   Award,
   Calendar,
-  Building2
+  Building2,
+  User,
+  Settings,
+  Gift,
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -41,19 +46,19 @@ const ROLES_INFO = [
 ];
 
 export default function Navbar() {
-  const { user, switchRole, lang, setLanguage, t } = useAuth();
+  const { user, switchRole, logout, lang, setLanguage, t } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { notifications, walletBalance } = useApp();
   const navigate = useNavigate();
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [regModalOpen, setRegModalOpen] = useState(false);
   const [freshnessModalOpen, setFreshnessModalOpen] = useState(false);
   const [taxModalOpen, setTaxModalOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const unreadNotifsCount = notifications.filter(n => n.unread).length;
 
@@ -61,6 +66,12 @@ export default function Navbar() {
     switchRole(roleObj.key);
     setRoleDropdownOpen(false);
     navigate(roleObj.path);
+  };
+
+  const handleLogout = () => {
+    setProfileDropdownOpen(false);
+    logout();
+    navigate('/');
   };
 
   return (
@@ -238,6 +249,64 @@ export default function Navbar() {
               >
                 {theme === 'dark' ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-slate-600" />}
               </button>
+
+              {/* User Profile Avatar Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex items-center space-x-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"
+                >
+                  <img src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'} alt={user?.name} className="w-8 h-8 rounded-xl object-cover border border-emerald-500" />
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 pr-1" />
+                </button>
+
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl glass-card shadow-2xl py-2 border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2 text-xs font-semibold">
+                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
+                      <div className="font-extrabold text-slate-900 dark:text-white">{user?.name || 'Som Prakash'}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{user?.email}</div>
+                    </div>
+
+                    <Link
+                      to="/profile"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center space-x-2.5 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                    >
+                      <User className="w-4 h-4 text-emerald-600" />
+                      <span>My Profile</span>
+                    </Link>
+
+                    <Link
+                      to="/settings"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center space-x-2.5 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                    >
+                      <Settings className="w-4 h-4 text-emerald-600" />
+                      <span>Settings & Privacy</span>
+                    </Link>
+
+                    <Link
+                      to="/referral"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center space-x-2.5 px-4 py-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                    >
+                      <Gift className="w-4 h-4 text-amber-500" />
+                      <span>Referral & Rewards</span>
+                    </Link>
+
+                    <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center space-x-2.5 px-4 py-2.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 font-bold"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
