@@ -47,10 +47,16 @@ const ROLES_INFO = [
   { key: 'OWNER_ADMIN', label: 'Platform Admin', icon: ShieldAlert, path: '/admin' },
 ];
 
-export default function Navbar() {
-  const { user, switchRole, logout, lang, setLanguage, t } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const { notifications, walletBalance } = useApp();
+export default function Navbar({ onOpenAuth }) {
+  const auth = useAuth() || {};
+  const { user, switchRole, logout, lang = 'EN', setLanguage, t = {} } = auth;
+  
+  const themeCtx = useTheme() || {};
+  const { theme, toggleTheme } = themeCtx;
+
+  const appCtx = useApp() || {};
+  const { notifications = [], walletBalance = 0 } = appCtx;
+
   const navigate = useNavigate();
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
@@ -63,18 +69,27 @@ export default function Navbar() {
   const [freshnessModalOpen, setFreshnessModalOpen] = useState(false);
   const [taxModalOpen, setTaxModalOpen] = useState(false);
 
-  const unreadNotifsCount = notifications.filter(n => n.unread).length;
+  const safeNotifications = Array.isArray(notifications) ? notifications : [];
+  const unreadNotifsCount = safeNotifications.filter(n => n && n.unread).length;
 
   const handleRoleSelect = (roleObj) => {
-    switchRole(roleObj.key);
+    if (switchRole) switchRole(roleObj.key);
     setRoleDropdownOpen(false);
     navigate(roleObj.path);
   };
 
   const handleLogout = () => {
     setProfileDropdownOpen(false);
-    logout();
+    if (logout) logout();
     navigate('/');
+  };
+
+  const handleSignInClick = () => {
+    if (onOpenAuth) {
+      onOpenAuth();
+    } else {
+      setRegModalOpen(true);
+    }
   };
 
   return (
@@ -91,9 +106,9 @@ export default function Navbar() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-800 via-brand-600 to-emerald-600 dark:from-brand-300 dark:via-brand-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                    {t.brand || "FoodBridge"}
+                    {t?.brand || "FoodBridge"}
                   </span>
-                  <span className="text-[10px] font-semibold text-slate-400 tracking-wider">{t.tagline || "Surplus Food Marketplace"}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 tracking-wider">{t?.tagline || "Surplus Food Marketplace"}</span>
                 </div>
               </Link>
 
@@ -110,14 +125,14 @@ export default function Navbar() {
 
                 {langDropdownOpen && (
                   <div className="absolute left-0 mt-2 w-32 rounded-2xl glass-card shadow-soft-lg py-1 border border-slate-200 dark:border-slate-800 z-50">
-                    <button onClick={() => { setLanguage('EN'); setLangDropdownOpen(false); }} className="w-full px-3 py-1.5 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">English (EN)</button>
-                    <button onClick={() => { setLanguage('HI'); setLangDropdownOpen(false); }} className="w-full px-3 py-1.5 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">हिंदी (HI)</button>
+                    <button onClick={() => { if (setLanguage) setLanguage('EN'); setLangDropdownOpen(false); }} className="w-full px-3 py-1.5 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">English (EN)</button>
+                    <button onClick={() => { if (setLanguage) setLanguage('HI'); setLangDropdownOpen(false); }} className="w-full px-3 py-1.5 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">हिंदी (HI)</button>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Middle Nav: Quick Links & Role Switcher */}
+            {/* Middle Nav: Quick Links */}
             <div className="hidden lg:flex items-center space-x-3">
               
               {/* EMERGENCY LEFTOVER FOOD RESCUE BUTTON */}
@@ -130,7 +145,7 @@ export default function Navbar() {
               </button>
 
               <Link to="/buyer" className="px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition-colors">
-                {t.marketplace || "Marketplace"}
+                {t?.marketplace || "Marketplace"}
               </Link>
               <Link to="/event-rescue" className="px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center space-x-1">
                 <Calendar className="w-3.5 h-3.5" />
@@ -155,14 +170,14 @@ export default function Navbar() {
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="flex items-center space-x-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors"
                   >
-                    <img src={user.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"} alt={user.name} className="w-8 h-8 rounded-xl object-cover border border-emerald-500" />
-                    <span className="text-xs font-extrabold text-slate-900 dark:text-white max-w-[100px] truncate">{user.name}</span>
+                    <img src={user.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"} alt={user.name || "User"} className="w-8 h-8 rounded-xl object-cover border border-emerald-500" />
+                    <span className="text-xs font-extrabold text-slate-900 dark:text-white max-w-[100px] truncate">{user.name || "User"}</span>
                   </button>
 
                   {profileDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 rounded-2xl glass-card shadow-soft-lg py-2 border border-slate-200 dark:border-slate-800 z-50">
                       <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                        <div className="text-xs font-black text-slate-900 dark:text-white">{user.name}</div>
+                        <div className="text-xs font-black text-slate-900 dark:text-white">{user.name || "User"}</div>
                         <div className="text-[10px] text-slate-400 font-semibold">{user.role}</div>
                       </div>
                       <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center space-x-2">
@@ -174,7 +189,7 @@ export default function Navbar() {
                 </div>
               ) : (
                 <button
-                  onClick={() => setRegModalOpen(true)}
+                  onClick={handleSignInClick}
                   className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md"
                 >
                   Sign In / Sign Up
