@@ -28,7 +28,8 @@ import {
   ShieldAlert,
   Award,
   Siren,
-  PartyPopper
+  PartyPopper,
+  Utensils
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
