@@ -80,7 +80,7 @@ function MainLayout() {
         onOpenSos={() => setSosOpen(true)}
       />
 
-      <MobileBottomNav onOpenSos={() => setSosOpen(true)} />
+      <MobileBottomNav onOpenRescue={() => setAuthModalOpen(true)} />
 
       {/* Global Modals */}
       <SosEmergencyModal isOpen={sosOpen} onClose={() => setSosOpen(false)} />

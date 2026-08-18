@@ -27,7 +27,10 @@ import {
   Gift,
   LogOut,
   ShieldCheck,
-  Siren
+  Siren,
+  MapPin,
+  Search,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -38,14 +41,6 @@ import RegistrationModal from './RegistrationModal';
 import QuickDonateModal from './QuickDonateModal';
 import AiFreshnessCalculatorModal from './AiFreshnessCalculatorModal';
 import TaxSavingsCalculatorModal from './TaxSavingsCalculatorModal';
-
-const ROLES_INFO = [
-  { key: 'RESTAURANT', label: 'Restaurant / Donor Portal', icon: Utensils, path: '/restaurant' },
-  { key: 'NGO', label: 'NGO Portal', icon: HeartHandshake, path: '/ngo' },
-  { key: 'BUYER', label: 'Buyer Marketplace', icon: ShoppingBag, path: '/buyer' },
-  { key: 'DELIVERY_PARTNER', label: 'Delivery Partner', icon: Truck, path: '/delivery' },
-  { key: 'OWNER_ADMIN', label: 'Platform Admin', icon: ShieldAlert, path: '/admin' },
-];
 
 export default function Navbar({ onOpenAuth }) {
   const auth = useAuth() || {};
@@ -59,23 +54,36 @@ export default function Navbar({ onOpenAuth }) {
 
   const navigate = useNavigate();
 
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
   const [regModalOpen, setRegModalOpen] = useState(false);
   const [quickDonateOpen, setQuickDonateOpen] = useState(false);
-  const [freshnessModalOpen, setFreshnessModalOpen] = useState(false);
-  const [taxModalOpen, setTaxModalOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState('New Delhi NCR, India');
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const safeNotifications = Array.isArray(notifications) ? notifications : [];
-  const unreadNotifsCount = safeNotifications.filter(n => n && n.unread).length;
 
-  const handleRoleSelect = (roleObj) => {
-    if (switchRole) switchRole(roleObj.key);
-    setRoleDropdownOpen(false);
-    navigate(roleObj.path);
+  const handleUseCurrentLocation = () => {
+    setLocationLoading(true);
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setSelectedLocation(`GPS (${position.coords.latitude.toFixed(2)}, ${position.coords.longitude.toFixed(2)})`);
+          setLocationLoading(false);
+          setLocationDropdownOpen(false);
+        },
+        (error) => {
+          setSelectedLocation('Connaught Place, New Delhi');
+          setLocationLoading(false);
+          setLocationDropdownOpen(false);
+        }
+      );
+    } else {
+      setSelectedLocation('New Delhi NCR, India');
+      setLocationLoading(false);
+      setLocationDropdownOpen(false);
+    }
   };
 
   const handleLogout = () => {
@@ -96,11 +104,11 @@ export default function Navbar({ onOpenAuth }) {
     <>
       <nav className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+          <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
             
-            {/* Brand Logo & Language Switcher */}
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="flex items-center space-x-3 group">
+            {/* Brand Logo */}
+            <div className="flex items-center space-x-3 shrink-0">
+              <Link to="/" className="flex items-center space-x-2.5 group">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-emerald-500 flex items-center justify-center text-white shadow-soft group-hover:scale-105 transition-transform duration-200">
                   <Utensils className="w-5.5 h-5.5" />
                 </div>
@@ -108,34 +116,54 @@ export default function Navbar({ onOpenAuth }) {
                   <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-brand-800 via-brand-600 to-emerald-600 dark:from-brand-300 dark:via-brand-400 dark:to-emerald-400 bg-clip-text text-transparent">
                     {t?.brand || "FoodBridge"}
                   </span>
-                  <span className="text-[10px] font-semibold text-slate-400 tracking-wider">{t?.tagline || "Surplus Food Marketplace"}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 tracking-wider">Surplus Food Rescue</span>
                 </div>
               </Link>
-
-              {/* Language Selector Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                  className="flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-[11px] font-extrabold text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors border border-slate-200 dark:border-slate-700"
-                >
-                  <Globe className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{lang}</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
-                </button>
-
-                {langDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-32 rounded-2xl glass-card shadow-soft-lg py-1 border border-slate-200 dark:border-slate-800 z-50">
-                    <button onClick={() => { if (setLanguage) setLanguage('EN'); setLangDropdownOpen(false); }} className="w-full px-3 py-1.5 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">English (EN)</button>
-                    <button onClick={() => { if (setLanguage) setLanguage('HI'); setLangDropdownOpen(false); }} className="w-full px-3 py-1.5 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">हिंदी (HI)</button>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* Middle Nav: Quick Links */}
+            {/* LOCATION SELECTOR SYSTEM */}
+            <div className="relative hidden md:block">
+              <button
+                onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all max-w-[200px]"
+              >
+                <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="text-left truncate">
+                  <div className="text-[9px] text-slate-400 font-extrabold uppercase">Delivering In</div>
+                  <div className="truncate font-extrabold">{locationLoading ? 'Locating...' : selectedLocation}</div>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+              </button>
+
+              {locationDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-64 rounded-3xl glass-card shadow-2xl p-2 border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in zoom-in-95">
+                  <button
+                    onClick={handleUseCurrentLocation}
+                    className="w-full px-3.5 py-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-black flex items-center space-x-2 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                  >
+                    <MapPin className="w-4 h-4 text-emerald-600" />
+                    <span>Use My Current Location</span>
+                  </button>
+
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-1.5 mt-1">Select City</div>
+                  {['New Delhi NCR, India', 'Mumbai, Maharashtra', 'Bengaluru, Karnataka', 'Hyderabad, Telangana'].map((city) => (
+                    <button
+                      key={city}
+                      onClick={() => {
+                        setSelectedLocation(city);
+                        setLocationDropdownOpen(false);
+                      }}
+                      className="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                    >
+                      {city}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Quick Emergency Donate CTA */}
             <div className="hidden lg:flex items-center space-x-3">
-              
-              {/* EMERGENCY LEFTOVER FOOD RESCUE BUTTON */}
               <button
                 onClick={() => setQuickDonateOpen(true)}
                 className="px-3.5 py-2 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow-lg flex items-center space-x-1.5 transition-transform hover:scale-105 animate-pulse"
@@ -145,10 +173,9 @@ export default function Navbar({ onOpenAuth }) {
               </button>
 
               <Link to="/buyer" className="px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition-colors">
-                {t?.marketplace || "Marketplace"}
+                Marketplace
               </Link>
               
-              {/* MY ORDERS LINK */}
               <Link to="/orders" className="px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition-colors flex items-center space-x-1">
                 <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
                 <span>My Orders</span>
@@ -163,7 +190,7 @@ export default function Navbar({ onOpenAuth }) {
               </Link>
             </div>
 
-            {/* Right Action Tools */}
+            {/* Right Side Tools & Profile Dropdown */}
             <div className="flex items-center space-x-3">
               {/* Theme Toggle */}
               <button
@@ -173,28 +200,46 @@ export default function Navbar({ onOpenAuth }) {
                 {theme === 'dark' ? <Sun className="w-4.5 h-4.5 text-amber-400" /> : <Moon className="w-4.5 h-4.5 text-slate-600" />}
               </button>
 
-              {/* User Profile / Login */}
+              {/* User Account Dropdown */}
               {user ? (
                 <div className="relative">
                   <button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="flex items-center space-x-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors"
+                    className="flex items-center space-x-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors border border-slate-200 dark:border-slate-700"
                   >
                     <img src={user.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"} alt={user.name || "User"} className="w-8 h-8 rounded-xl object-cover border border-emerald-500" />
                     <span className="text-xs font-extrabold text-slate-900 dark:text-white max-w-[100px] truncate">{user.name || "User"}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                   </button>
 
                   {profileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-2xl glass-card shadow-soft-lg py-2 border border-slate-200 dark:border-slate-800 z-50">
+                    <div className="absolute right-0 mt-2 w-52 rounded-3xl glass-card shadow-2xl py-2 border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in zoom-in-95">
                       <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
                         <div className="text-xs font-black text-slate-900 dark:text-white">{user.name || "User"}</div>
-                        <div className="text-[10px] text-slate-400 font-semibold">{user.role}</div>
+                        <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider">{user.role || 'VERIFIED USER'}</div>
                       </div>
+
+                      <Link to="/profile" onClick={() => setProfileDropdownOpen(false)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2">
+                        <User className="w-4 h-4 text-emerald-600" />
+                        <span>My Profile</span>
+                      </Link>
+
                       <Link to="/orders" onClick={() => setProfileDropdownOpen(false)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2">
                         <ShoppingBag className="w-4 h-4 text-emerald-600" />
-                        <span>My Orders</span>
+                        <span>My Orders & Pickups</span>
                       </Link>
-                      <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center space-x-2">
+
+                      <Link to="/impact" onClick={() => setProfileDropdownOpen(false)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2">
+                        <Award className="w-4 h-4 text-amber-500" />
+                        <span>Impact Dashboard</span>
+                      </Link>
+
+                      <Link to="/settings" onClick={() => setProfileDropdownOpen(false)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2">
+                        <Settings className="w-4 h-4 text-slate-400" />
+                        <span>Settings</span>
+                      </Link>
+
+                      <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center space-x-2 border-t border-slate-100 dark:border-slate-800 mt-1 pt-2">
                         <LogOut className="w-4 h-4" />
                         <span>Logout</span>
                       </button>
