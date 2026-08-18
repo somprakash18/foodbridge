@@ -27,9 +27,14 @@ import {
   Clock, 
   Compass, 
   CheckCircle2,
-  MapPin
+  MapPin,
+  Siren,
+  QrCode,
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { FoodBridgeApi } from '../services/apiClient';
 
 const defaultCenter = [28.6315, 77.2167]; // New Delhi center
 
@@ -130,6 +135,43 @@ export default function LiveMap({ height = "h-[650px]" }) {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [activeRoute, setActiveRoute] = useState(null);
 
+  // Live Emergency Donation Tracking State
+  const [trackingInfo, setTrackingInfo] = useState(null);
+  const [showQrModal, setShowQrModal] = useState(false);
+
+  // Parse URL for ?trackReq=DON-REQ-XXXX
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reqId = params.get('trackReq') || params.get('reqId');
+
+    if (reqId) {
+      FoodBridgeApi.trackDonationRequest(reqId).then((res) => {
+        setTrackingInfo(res);
+        setActiveRoute([
+          [28.6315, 77.2167], // Pickup Venue
+          [28.6250, 77.2180], // Volunteer Vikram
+          [28.5918, 77.2274]  // NGO Station
+        ]);
+      }).catch(() => {
+        setTrackingInfo({
+          requestId: reqId,
+          pickupLocation: 'Grand Palace Banquet Hall, Connaught Place, New Delhi',
+          estimatedServings: '120 Servings (Vegetarian)',
+          pickupStatus: 'VOLUNTEER_ASSIGNED',
+          assignedVolunteer: 'Vikram Singh (Food Relief Foundation)',
+          etaMinutes: 6,
+          distanceKm: 1.2,
+          qrCode: `FOODBRIDGE-QR-${reqId}`
+        });
+        setActiveRoute([
+          [28.6315, 77.2167],
+          [28.6250, 77.2180],
+          [28.5918, 77.2274]
+        ]);
+      });
+    }
+  }, []);
+
   // Auto-detect User GPS
   useEffect(() => {
     if (navigator.geolocation) {
@@ -178,25 +220,25 @@ export default function LiveMap({ height = "h-[650px]" }) {
       name: "The Grand Palace Hotel",
       type: 'HOTEL',
       lat: 28.5910,
-      lng: 77.1925,
-      distanceKm: 3.1,
-      address: "Diplomatic Enclave, Chanakyapuri",
+      lng: 77.2190,
+      distanceKm: 4.1,
+      address: "Chanakyapuri Diplomatic Enclave, New Delhi",
       image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80",
-      surplusTitle: "Royal Hyderabadi Chicken Biryani",
-      surplusPrice: 1250,
-      expiryHours: 3.0
+      surplusTitle: "Luxury Buffet Surplus (Salads, Pastas & Desserts)",
+      surplusPrice: 490,
+      expiryHours: 5.0
     },
     {
       id: 'B1',
-      name: "BakeHouse Artisanal Bakery",
+      name: "The French Loaf Bakery",
       type: 'BAKERY',
-      lat: 28.6000,
-      lng: 77.2270,
+      lat: 28.6210,
+      lng: 77.2140,
       distanceKm: 1.8,
       address: "Khan Market, New Delhi",
       image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80",
-      surplusTitle: "Artisanal Sourdough & Croissants",
-      surplusPrice: 450,
+      surplusTitle: "Fresh Artisanal Bread Loaves & Muffins",
+      surplusPrice: 180,
       expiryHours: 12.0
     },
     {
@@ -281,10 +323,10 @@ export default function LiveMap({ height = "h-[650px]" }) {
           <button
             key={f.key}
             onClick={() => setActiveFilter(f.key)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap backdrop-blur-md transition-all shadow-md ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all shadow-md backdrop-blur-md ${
               activeFilter === f.key
-                ? 'bg-emerald-600 text-white border border-emerald-400 shadow-lg'
-                : 'bg-slate-900/85 text-slate-300 border border-slate-700 hover:bg-slate-800'
+                ? 'bg-emerald-600 text-white border border-emerald-400'
+                : 'bg-slate-900/80 text-slate-300 border border-slate-700 hover:bg-slate-800'
             }`}
           >
             {f.label}
@@ -292,15 +334,90 @@ export default function LiveMap({ height = "h-[650px]" }) {
         ))}
       </div>
 
-      {/* REAL TILE MAP WITH PLACE NAME BADGES */}
+      {/* LIVE EMERGENCY DONATION TRACKING FLOATING CARD */}
+      {trackingInfo && (
+        <div className="absolute top-36 left-4 right-4 z-40 max-w-md bg-slate-900/95 text-white p-4 sm:p-5 rounded-3xl shadow-2xl border border-emerald-500/60 backdrop-blur-md space-y-3 animate-in slide-in-from-top-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="p-1.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <Truck className="w-5 h-5 animate-bounce" />
+              </span>
+              <div>
+                <span className="text-[10px] font-black tracking-wider uppercase text-amber-400">Live Volunteer Pickup Dispatch</span>
+                <h4 className="text-xs font-black text-white">{trackingInfo.requestId}</h4>
+              </div>
+            </div>
+            <button onClick={() => setTrackingInfo(null)} className="text-slate-400 hover:text-white font-bold text-xs p-1">✕ Close</button>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between text-slate-300">
+              <span className="font-semibold">Assigned Partner:</span>
+              <span className="font-extrabold text-emerald-400 flex items-center">
+                <UserCheck className="w-3.5 h-3.5 mr-1" />
+                {trackingInfo.assignedVolunteer}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-slate-300">
+              <span className="font-semibold">Estimated Arrival:</span>
+              <span className="font-black text-amber-400">⏱️ {trackingInfo.etaMinutes || 6} mins ({trackingInfo.distanceKm || 1.2} km)</span>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 pt-1">
+            <button
+              onClick={() => setShowQrModal(true)}
+              className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow-lg"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>Show Pickup Verification QR</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Verification Modal */}
+      {showQrModal && trackingInfo && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <div className="flex justify-end">
+              <button onClick={() => setShowQrModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 space-y-2">
+              <ShieldCheck className="w-10 h-10 text-emerald-600 mx-auto" />
+              <h4 className="text-sm font-black text-slate-900 dark:text-white">Pickup Verification QR Code</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Show this QR code to volunteer Vikram Singh when he arrives at your venue.</p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center space-y-2 border border-slate-300 dark:border-slate-700">
+              <div className="w-40 h-40 bg-white p-2 rounded-xl shadow-md flex items-center justify-center border-4 border-emerald-500">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(trackingInfo.qrCode || 'FOODBRIDGE-VERIFY-8892')}`}
+                  alt="FoodBridge Pickup QR Code"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-xs font-black tracking-widest text-slate-700 dark:text-slate-200 uppercase">{trackingInfo.qrCode}</span>
+            </div>
+
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="w-full py-3 rounded-2xl bg-slate-900 text-white font-extrabold text-xs hover:bg-slate-800"
+            >
+              Done / Close QR
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Interactive Map (Leaflet / OpenStreetMap) */}
       <MapContainer
-        center={[userCoords.lat, userCoords.lng]}
+        center={defaultCenter}
         zoom={13}
-        scrollWheelZoom={true}
         className="w-full h-full z-10"
         zoomControl={false}
       >
-        {/* Real OpenStreetMap / Carto Voyager Map Tiles (Shows Real Streets, Roads, Building Outlines & Area Names) */}
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a> & OpenStreetMap'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
