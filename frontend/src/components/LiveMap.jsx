@@ -31,7 +31,8 @@ import {
   Siren,
   QrCode,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Volume2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { FoodBridgeApi } from '../services/apiClient';
@@ -129,6 +130,7 @@ export default function LiveMap({ height = "h-[650px]" }) {
   });
 
   const [userCoords, setUserCoords] = useState({ lat: 28.6315, lng: 77.2167 });
+  const [driverPos, setDriverPos] = useState({ lat: 28.6250, lng: 77.2180 });
   const [gpsActive, setGpsActive] = useState(false);
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,6 +140,36 @@ export default function LiveMap({ height = "h-[650px]" }) {
   // Live Emergency Donation Tracking State
   const [trackingInfo, setTrackingInfo] = useState(null);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [voiceLang, setVoiceLang] = useState('HI');
+
+  // Animated EV Volunteer Scooter Movement
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDriverPos(prev => ({
+        lat: prev.lat + (Math.random() - 0.5) * 0.0004,
+        lng: prev.lng + (Math.random() - 0.5) * 0.0004
+      }));
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Web Speech API Voice Prompt Navigation
+  const playVoiceNavigation = (langCode = 'HI') => {
+    if (!('speechSynthesis' in window)) return;
+
+    const prompts = {
+      HI: "विक्रम, फ़ूड ब्रिज वालंटियर पिकअप के लिए निकल चुके हैं। 6 मिनट में पहुँचेंगे।",
+      EN: "Volunteer Vikram is en route to collect your surplus food. Estimated arrival in 6 minutes.",
+      TA: "உணவுப் பொருள் சேகரிக்க விக்ரம் 6 நிமிடங்களில் வருவார்.",
+      TE: "ఆహార సేకరణ కోసం విక్రమ్ 6 నిమిషాల్లో వస్తున్నారు."
+    };
+
+    const text = prompts[langCode] || prompts.EN;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Parse URL for ?trackReq=DON-REQ-XXXX
   useEffect(() => {
@@ -149,9 +181,10 @@ export default function LiveMap({ height = "h-[650px]" }) {
         setTrackingInfo(res);
         setActiveRoute([
           [28.6315, 77.2167], // Pickup Venue
-          [28.6250, 77.2180], // Volunteer Vikram
+          [driverPos.lat, driverPos.lng], // Volunteer Vikram
           [28.5918, 77.2274]  // NGO Station
         ]);
+        playVoiceNavigation('HI');
       }).catch(() => {
         setTrackingInfo({
           requestId: reqId,
@@ -165,9 +198,10 @@ export default function LiveMap({ height = "h-[650px]" }) {
         });
         setActiveRoute([
           [28.6315, 77.2167],
-          [28.6250, 77.2180],
+          [driverPos.lat, driverPos.lng],
           [28.5918, 77.2274]
         ]);
+        playVoiceNavigation('HI');
       });
     }
   }, []);
@@ -254,10 +288,10 @@ export default function LiveMap({ height = "h-[650px]" }) {
     },
     {
       id: 'D1',
-      name: "Vikram (Driver #4092)",
+      name: "Vikram (EV Scooter #4092)",
       type: 'DELIVERY',
-      lat: 28.6250,
-      lng: 77.2180,
+      lat: driverPos.lat,
+      lng: driverPos.lng,
       distanceKm: 0.5,
       address: "En Route on EV Scooter",
       image: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=400&q=80"
@@ -365,6 +399,13 @@ export default function LiveMap({ height = "h-[650px]" }) {
           </div>
 
           <div className="flex items-center space-x-2 pt-1">
+            <button
+              onClick={() => playVoiceNavigation(voiceLang)}
+              className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-xs flex items-center space-x-1 border border-slate-700"
+            >
+              <Volume2 className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span>Voice</span>
+            </button>
             <button
               onClick={() => setShowQrModal(true)}
               className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow-lg"
