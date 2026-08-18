@@ -36,8 +36,8 @@ export default function QuickDonateModal({ isOpen, onClose }) {
 
   const [formData, setFormData] = useState({
     location: 'Grand Palace Banquet Hall, Connaught Place, New Delhi',
-    contactPerson: 'Rahul Sharma',
-    phone: '+91 75630 45006',
+    contactPerson: '',
+    phone: '',
     foodDescription: 'Rice, dal, paneer, naan and mixed vegetables (Wedding Feast)',
     servings: '120',
     approxKg: '45',
@@ -183,6 +183,7 @@ export default function QuickDonateModal({ isOpen, onClose }) {
                   <input
                     type="text"
                     required
+                    placeholder="Your Full Name"
                     value={formData.contactPerson}
                     onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none font-semibold text-xs text-slate-900 dark:text-white"
@@ -193,6 +194,7 @@ export default function QuickDonateModal({ isOpen, onClose }) {
                   <input
                     type="text"
                     required
+                    placeholder="Enter 10-digit mobile number"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none font-semibold text-xs text-slate-900 dark:text-white"

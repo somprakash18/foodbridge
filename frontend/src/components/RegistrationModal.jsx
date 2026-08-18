@@ -41,7 +41,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = null 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '+91 ',
+    phone: '',
     password: '',
     confirmPassword: '',
     agreeTerms: true,
@@ -364,7 +364,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = null 
                 <label className="text-slate-700 dark:text-slate-300 block mb-1">Phone Number (+91)</label>
                 <input
                   type="text"
-                  placeholder="7563045006"
+                  placeholder="Enter 10-digit mobile number"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none font-bold text-slate-900 dark:text-white"
