@@ -55,7 +55,7 @@ export default function Navbar({ onOpenAuth }) {
   const { theme, toggleTheme } = themeCtx;
 
   const appCtx = useApp() || {};
-  const { notifications = [], walletBalance = 0 } = appCtx;
+  const { notifications = [], walletBalance = 0, orders = [] } = appCtx;
 
   const navigate = useNavigate();
 
@@ -147,6 +147,16 @@ export default function Navbar({ onOpenAuth }) {
               <Link to="/buyer" className="px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition-colors">
                 {t?.marketplace || "Marketplace"}
               </Link>
+              
+              {/* MY ORDERS LINK */}
+              <Link to="/orders" className="px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition-colors flex items-center space-x-1">
+                <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
+                <span>My Orders</span>
+                {orders.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-emerald-600 text-white text-[9px] font-black">{orders.length}</span>
+                )}
+              </Link>
+
               <Link to="/event-rescue" className="px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center space-x-1">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Wedding Rescue</span>
@@ -180,6 +190,10 @@ export default function Navbar({ onOpenAuth }) {
                         <div className="text-xs font-black text-slate-900 dark:text-white">{user.name || "User"}</div>
                         <div className="text-[10px] text-slate-400 font-semibold">{user.role}</div>
                       </div>
+                      <Link to="/orders" onClick={() => setProfileDropdownOpen(false)} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-2">
+                        <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                        <span>My Orders</span>
+                      </Link>
                       <button onClick={handleLogout} className="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center space-x-2">
                         <LogOut className="w-4 h-4" />
                         <span>Logout</span>

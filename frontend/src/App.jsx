@@ -26,6 +26,7 @@ import ReferralPage from './pages/ReferralPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import HelpPage from './pages/HelpPage';
+import OrdersPage from './pages/OrdersPage';
 import LiveMap from './components/LiveMap';
 
 // Protected Route Component for Unauthenticated Security
@@ -51,6 +52,7 @@ function MainLayout() {
             <Route path="/" element={<LandingPage onOpenAuth={() => setAuthModalOpen(true)} />} />
             <Route path="/impact" element={<ImpactDashboard />} />
             <Route path="/buyer" element={<BuyerMarketplace />} />
+            <Route path="/orders" element={<OrdersPage />} />
             <Route path="/event-rescue" element={<EventRescuePage />} />
             <Route path="/campus-rescue" element={<CampusRescuePage />} />
             <Route path="/community" element={<CommunityPage />} />

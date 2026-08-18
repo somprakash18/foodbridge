@@ -1,28 +1,42 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CreditCard, Smartphone, Building, ShieldCheck, Lock, X, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-export default function RazorpayModal({ isOpen, onClose, amount = 375, listingId, onSuccess }) {
+export default function RazorpayModal({ isOpen, onClose, amount = 99, listingId, onSuccess }) {
+  const navigate = useNavigate();
   const { buyListing } = useApp();
   const [method, setMethod] = useState('UPI');
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [txnId, setTxnId] = useState('RZP-TXN-530010');
+  const [createdOrder, setCreatedOrder] = useState(null);
 
   if (!isOpen) return null;
 
   const handlePay = () => {
     setProcessing(true);
+    const generatedTxn = `RZP-TXN-${Math.floor(100000 + Math.random() * 900000)}`;
+    setTxnId(generatedTxn);
+
     setTimeout(() => {
       setProcessing(false);
       setSuccess(true);
-      buyListing(listingId, method);
+      const newOrd = buyListing(listingId, method);
+      setCreatedOrder(newOrd);
       if (onSuccess) onSuccess();
-    }, 1800);
+    }, 1500);
+  };
+
+  const handleViewOrderConfirmation = () => {
+    const orderNum = createdOrder?.orderNumber || 'FB-ORD-530010';
+    onClose();
+    navigate(`/orders?orderId=${orderNum}`);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg glass-card rounded-3xl p-6 shadow-soft-lg border border-slate-200 dark:border-slate-800 space-y-6">
+      <div className="relative w-full max-w-lg glass-card rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 bg-white dark:bg-slate-900">
         
         {/* Razorpay Branded Top bar */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -41,13 +55,14 @@ export default function RazorpayModal({ isOpen, onClose, amount = 375, listingId
         </div>
 
         {success ? (
-          <div className="text-center py-6 space-y-4">
+          <div className="text-center py-6 space-y-4 animate-in zoom-in-95">
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto animate-bounce" />
             <h4 className="text-xl font-extrabold text-slate-900 dark:text-white">Payment Successful!</h4>
-            <p className="text-xs text-slate-500">Transaction ID: RZP-TXN-{Math.floor(100000 + Math.random() * 900000)}</p>
+            <p className="text-xs text-slate-500 font-semibold">Transaction ID: <strong>{txnId}</strong></p>
+            
             <button
-              onClick={onClose}
-              className="w-full py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-soft"
+              onClick={handleViewOrderConfirmation}
+              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-lg transition-all"
             >
               View Order Confirmation
             </button>
