@@ -12,7 +12,9 @@ import {
   Download,
   Droplets,
   Leaf,
-  ShieldCheck
+  ShieldCheck,
+  Building2,
+  HeartHandshake
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +27,8 @@ export default function ImpactDashboard() {
   // Dynamic impact metrics based on city & timeRange filters
   const impactData = {
     DELHI: {
+      registeredDonors: '1,284',
+      registeredRecipients: '542',
       rescues: '11,890',
       pounds: '1,820,400 kg',
       meals: '1,517,000',
@@ -33,6 +37,8 @@ export default function ImpactDashboard() {
       treesEquiv: '215,000 Trees'
     },
     MUMBAI: {
+      registeredDonors: '1,650',
+      registeredRecipients: '680',
       rescues: '14,200',
       pounds: '2,150,000 kg',
       meals: '1,791,666',
@@ -41,6 +47,8 @@ export default function ImpactDashboard() {
       treesEquiv: '280,000 Trees'
     },
     NEW_YORK: {
+      registeredDonors: '980',
+      registeredRecipients: '410',
       rescues: '8,450',
       pounds: '1,240,500 kg',
       meals: '1,033,750',
@@ -49,6 +57,8 @@ export default function ImpactDashboard() {
       treesEquiv: '140,000 Trees'
     },
     PITTSBURGH: {
+      registeredDonors: '340',
+      registeredRecipients: '165',
       rescues: '2,834',
       pounds: '378,769 kg',
       meals: '315,641',
@@ -67,6 +77,11 @@ FOODBRIDGE OFFICIAL ESG CSR SUSTAINABILITY REPORT
 Organization / City: ${city}
 Reporting Period: ${timeRange}
 Date Generated: ${new Date().toLocaleDateString('en-IN')}
+
+REGISTERED NETWORK PARTICIPATION:
+-----------------------------------------------------
+- Registered Food Donors: ${currentMetrics.registeredDonors} (Weddings, Hotels, Restaurants, Caterers)
+- Registered Recipients: ${currentMetrics.registeredRecipients} (Verified NGOs, Shelters, Orphanages)
 
 KEY ENVIRONMENTAL & SOCIAL METRICS:
 -----------------------------------------------------
@@ -96,7 +111,7 @@ Verified by: FoodBridge Environmental Foundation
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans flex flex-col items-center justify-start py-4 sm:py-8 px-4 antialiased">
       
       {/* Mobile Frame Container */}
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col min-h-[780px]">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col min-h-[820px]">
         
         {/* Top Header */}
         <header className="px-5 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -147,8 +162,27 @@ Verified by: FoodBridge Environmental Foundation
           </div>
         </div>
 
+        {/* Registered Network Banner */}
+        <div className="mx-5 mb-2 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-800 to-teal-900 text-white flex items-center justify-around text-center shadow-md">
+          <div>
+            <div className="text-xl font-black">{currentMetrics.registeredDonors}</div>
+            <div className="text-[10px] text-emerald-200 font-bold uppercase tracking-wider flex items-center justify-center space-x-1">
+              <Building2 className="w-3 h-3 text-emerald-400" />
+              <span>Registered Donors</span>
+            </div>
+          </div>
+          <div className="h-8 w-px bg-white/20" />
+          <div>
+            <div className="text-xl font-black">{currentMetrics.registeredRecipients}</div>
+            <div className="text-[10px] text-emerald-200 font-bold uppercase tracking-wider flex items-center justify-center space-x-1">
+              <HeartHandshake className="w-3 h-3 text-teal-300" />
+              <span>Registered Recipients</span>
+            </div>
+          </div>
+        </div>
+
         {/* Cards Container */}
-        <div className="p-5 space-y-4 flex-1 overflow-y-auto">
+        <div className="px-5 pb-5 space-y-4 flex-1 overflow-y-auto">
           
           {/* Card 1: Rescues (Green) */}
           <div className="bg-[#4CAF50] rounded-2xl p-5 text-white relative overflow-hidden shadow-sm transition-all hover:scale-[1.01]">
@@ -220,19 +254,17 @@ Verified by: FoodBridge Environmental Foundation
             </div>
           </div>
 
-          {/* ESG Certificate Download Button */}
+          {/* Download Report Button */}
           <button
             onClick={handleDownloadEsgReport}
-            className="w-full py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2 transition-all hover:bg-slate-800"
+            className="w-full py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold text-xs shadow-lg flex items-center justify-center space-x-2 transition-all hover:scale-[1.02]"
           >
-            <Download className="w-4 h-4 text-emerald-400" />
-            <span>Download ESG CSR Impact Report</span>
+            <Download className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
+            <span>Download ESG Impact Certificate (.TXT)</span>
           </button>
-
         </div>
 
       </div>
-
     </div>
   );
 }

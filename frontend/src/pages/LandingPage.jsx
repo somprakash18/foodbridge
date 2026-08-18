@@ -106,19 +106,23 @@ export default function LandingPage({ onOpenAuth }) {
                   </button>
                 </div>
 
-                {/* Live Stats Pill Bar */}
-                <div className="grid grid-cols-3 gap-4 pt-6 max-w-lg mx-auto lg:mx-0">
+                {/* Live Stats Pill Bar (Registered Donors & Recipients) */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 max-w-2xl mx-auto lg:mx-0">
                   <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-center">
-                    <div className="text-xl font-black text-slate-900 dark:text-white">1.8M kg</div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase">Food Rescued</div>
+                    <div className="text-lg font-black text-emerald-600 dark:text-emerald-400">1,280+</div>
+                    <div className="text-[9px] text-slate-400 font-extrabold uppercase">Registered Donors</div>
                   </div>
                   <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-center">
-                    <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">1.5M</div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase">Meals Served</div>
+                    <div className="text-lg font-black text-teal-600 dark:text-teal-400">540+</div>
+                    <div className="text-[9px] text-slate-400 font-extrabold uppercase">Registered Recipients</div>
                   </div>
                   <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-center">
-                    <div className="text-xl font-black text-amber-500">500+</div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase">NGO Partners</div>
+                    <div className="text-lg font-black text-slate-900 dark:text-white">1.8M kg</div>
+                    <div className="text-[9px] text-slate-400 font-extrabold uppercase">Food Rescued</div>
+                  </div>
+                  <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm text-center">
+                    <div className="text-lg font-black text-amber-500">1.5M</div>
+                    <div className="text-[9px] text-slate-400 font-extrabold uppercase">Meals Served</div>
                   </div>
                 </div>
 
