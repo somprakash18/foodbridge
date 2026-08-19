@@ -279,6 +279,9 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = null 
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 font-bold p-1">✕</button>
         </div>
 
+        {/* Firebase reCAPTCHA Invisible Verification Target Container */}
+        <div id="recaptcha-container"></div>
+
         {/* Status Alerts */}
         {errorMessage && (
           <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center space-x-2.5">
@@ -418,7 +421,7 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = null 
                 disabled={loading}
                 className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xl flex items-center justify-center space-x-2 transition-all mt-2"
               >
-                <span>{authMode === 'SIGNUP' ? 'Send OTP & Create Account' : 'Send OTP & Sign In'}</span>
+                <span>{loading ? 'Sending OTP...' : (authMode === 'SIGNUP' ? 'Send OTP & Create Account' : 'Send OTP & Sign In')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
