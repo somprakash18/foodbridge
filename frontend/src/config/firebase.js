@@ -3,9 +3,9 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyA1B2C3D4E5F6G7H8I9J0-FoodBridgeDemo",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "foodbridge-app.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "foodbridge-app",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "foodbridge-app.appspot.com",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "foodbridge-app-186ac.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "foodbridge-app-186ac",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "foodbridge-app-186ac.appspot.com",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1098457291834",
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1098457291834:web:abc123def456"
 };
