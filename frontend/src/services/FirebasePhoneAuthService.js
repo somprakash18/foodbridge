@@ -122,6 +122,9 @@ export class FirebasePhoneAuthService {
       // 3. Map Firebase Error Codes to Actionable User Feedback
       const errorCode = err.code || '';
       
+      if (errorCode.includes('api-key-not-valid') || errorCode === 'auth/invalid-api-key' || (err.message && err.message.includes('api-key-not-valid'))) {
+        throw new Error("Invalid Firebase API Key. Please add your real Firebase API Key to VITE_FIREBASE_API_KEY in frontend/.env (Firebase Console -> Project Settings -> Web API Key).");
+      }
       if (errorCode === 'auth/invalid-phone-number') {
         throw new Error("Please enter a valid 10-digit Indian mobile number.");
       }
