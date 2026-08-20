@@ -88,10 +88,24 @@ export function AuthProvider({ children }) {
     if (isOwnerRole) {
       if (user.businessData) {
         setBusinessData(user.businessData);
-      } else {
+      } else if (user.businessName || user.name) {
+        setBusinessData({
+          businessName: user.businessName || user.name,
+          address: user.address || 'New Delhi, India',
+          fssaiLicense: user.fssaiLicense || null
+        });
+      } else if (typeof FoodBridgeApi?.getOwnerBusinessProfile === 'function') {
         FoodBridgeApi.getOwnerBusinessProfile()
-          .then(res => setBusinessData(res))
-          .catch(() => setBusinessData(null));
+          .then(res => {
+            if (res) {
+              setBusinessData(res);
+            } else {
+              setBusinessData({ businessName: user.businessName || user.name || 'Food Donor' });
+            }
+          })
+          .catch(() => setBusinessData({ businessName: user.businessName || user.name || 'Food Donor' }));
+      } else {
+        setBusinessData({ businessName: user.businessName || user.name || 'Food Donor' });
       }
     } else {
       setBusinessData(null);

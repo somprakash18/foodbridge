@@ -53,5 +53,9 @@ export const FoodBridgeApi = {
   onboardNgo: (data) => apiClient.post('/auth/onboard-ngo', data).catch(() => ({ ngo: data })),
   getPickups: () => apiClient.get('/pickups').catch(() => ({ pickups: [] })),
   acceptPickup: (id, data) => apiClient.post(`/pickups/${id}/accept`, data).catch(() => ({ success: true })),
-  getTaxReceipt: (id) => apiClient.get(`/tax-receipts/${id}`).catch(() => null)
+  getTaxReceipt: (id) => apiClient.get(`/tax-receipts/${id}`).catch(() => null),
+  getOwnerBusinessProfile: (params) => apiClient.get('/owner/business-profile', { params }).catch(() => null),
+  trackDonationRequest: (id) => apiClient.get(`/donations/requests/${id}`).catch(() => null),
+  requestEmergencyDonation: (data) => apiClient.post('/donations/emergency', data).catch(() => ({ success: true }))
 };
+
