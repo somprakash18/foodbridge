@@ -128,6 +128,9 @@ export class FirebasePhoneAuthService {
       if (errorCode === 'auth/invalid-phone-number') {
         throw new Error("Please enter a valid 10-digit Indian mobile number.");
       }
+      if (errorCode === 'auth/configuration-not-found' || (err.message && err.message.includes('configuration-not-found'))) {
+        throw new Error("Phone Authentication is not enabled in Firebase Console for project 'foodbridge-app-186ac'. Please go to Firebase Console -> Authentication -> Sign-in method -> Phone and click Enable -> Save.");
+      }
       if (errorCode === 'auth/operation-not-allowed') {
         throw new Error("Phone Authentication is disabled in Firebase Console. Enable it in Firebase Console -> Auth -> Sign-in method -> Phone.");
       }
