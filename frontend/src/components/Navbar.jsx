@@ -59,6 +59,7 @@ export default function Navbar({ onOpenAuth }) {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [regModalOpen, setRegModalOpen] = useState(false);
   const [quickDonateOpen, setQuickDonateOpen] = useState(false);
+  const [foodSafetyOpen, setFoodSafetyOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('New Delhi NCR, India');
   const [locationLoading, setLocationLoading] = useState(false);
 
@@ -188,6 +189,15 @@ export default function Navbar({ onOpenAuth }) {
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Wedding Rescue</span>
               </Link>
+
+              <button
+                onClick={() => setFoodSafetyOpen(true)}
+                className="px-3 py-1.5 text-xs font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80 hover:bg-emerald-200 dark:hover:bg-emerald-900 border border-emerald-300 dark:border-emerald-700/80 rounded-xl flex items-center space-x-1.5 transition-all shadow-sm transform hover:scale-105"
+                title="View FoodBridge 100% Quality & FSSAI Safety Shield"
+              >
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Safety Shield</span>
+              </button>
             </div>
 
             {/* Right Side Tools & Profile Dropdown */}
@@ -263,6 +273,7 @@ export default function Navbar({ onOpenAuth }) {
       {/* Global Modals */}
       <RegistrationModal isOpen={regModalOpen} onClose={() => setRegModalOpen(false)} />
       <QuickDonateModal isOpen={quickDonateOpen} onClose={() => setQuickDonateOpen(false)} />
+      <FoodSafetyModal isOpen={foodSafetyOpen} onClose={() => setFoodSafetyOpen(false)} />
     </>
   );
 }

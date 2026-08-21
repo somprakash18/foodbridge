@@ -4,7 +4,7 @@ import RazorpayModal from './RazorpayModal';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 
-export default function FoodCard({ item }) {
+export default function FoodCard({ item, onOpenSafetyModal }) {
   const { user } = useAuth();
   const { claimDonation } = useApp();
   const [razorpayOpen, setRazorpayOpen] = useState(false);
@@ -39,10 +39,17 @@ export default function FoodCard({ item }) {
           </div>
 
           {/* Top Right: AI Safety Badge */}
-          <div className="absolute top-3 right-3 flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-950/90 text-emerald-300 text-[11px] font-extrabold backdrop-blur-md border border-emerald-500/40 shadow-sm">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onOpenSafetyModal) onOpenSafetyModal(item);
+            }}
+            title="Click to view Food Safety Inspection & FSSAI Details"
+            className="absolute top-3 right-3 flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-950/90 hover:bg-emerald-900 text-emerald-300 text-[11px] font-extrabold backdrop-blur-md border border-emerald-500/40 shadow-sm transition-all transform hover:scale-105 cursor-pointer"
+          >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span>{(item.aiSafetyScore * 100).toFixed(0)}% Safe</span>
-          </div>
+          </button>
 
           {/* Bottom Overlay Info */}
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-semibold">

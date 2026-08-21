@@ -21,6 +21,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import RazorpayModal from '../components/RazorpayModal';
+import FoodSafetyModal from '../components/FoodSafetyModal';
 
 export default function BuyerMarketplace() {
   const { listings = [], claimDonation } = useApp();
@@ -28,6 +29,8 @@ export default function BuyerMarketplace() {
 
   // State Management
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSafetyItem, setSelectedSafetyItem] = useState(null);
+  const [safetyModalOpen, setSafetyModalOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [priceTagFilter, setPriceTagFilter] = useState('ALL'); // ALL, FREE, UNDER_50, 50_100, 100_200, ABOVE_200
   const [maxPriceSlider, setMaxPriceSlider] = useState(500);
@@ -294,9 +297,18 @@ export default function BuyerMarketplace() {
                         <span className={`w-2.5 h-2.5 rounded-full ${meal.veg ? 'bg-emerald-600' : 'bg-rose-600'}`}></span>
                       </span>
 
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white shadow-md">
-                        {meal.safetyScore}% Safety Score
-                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSafetyItem(meal);
+                          setSafetyModalOpen(true);
+                        }}
+                        title="View Food Safety Inspection & FSSAI Details"
+                        className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all flex items-center space-x-1 cursor-pointer transform hover:scale-105"
+                      >
+                        <ShieldCheck className="w-3 h-3" />
+                        <span>{meal.safetyScore}% Safety Score</span>
+                      </button>
 
                       {meal.discountPercent > 0 && (
                         <span className="px-2 py-1 rounded-full text-[10px] font-black bg-rose-600 text-white shadow-md">
@@ -380,6 +392,13 @@ export default function BuyerMarketplace() {
           itemTitle={selectedMealPay.title}
         />
       )}
+
+      {/* Food Safety Guarantee Modal */}
+      <FoodSafetyModal
+        isOpen={safetyModalOpen}
+        onClose={() => setSafetyModalOpen(false)}
+        selectedItem={selectedSafetyItem}
+      />
 
     </div>
   );
