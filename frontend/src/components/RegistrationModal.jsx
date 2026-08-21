@@ -51,6 +51,8 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = null 
   // Account Type & Donor Type State
   const [selectedRole, setSelectedRole] = useState('RESTAURANT'); // BUYER, RESTAURANT, NGO
   const [donorType, setDonorType] = useState('WEDDING'); // WEDDING, RESTAURANT, HOTEL, HOSTEL, PARTY, COLLEGE, CORPORATE_EVENT, CATERER, COMMUNITY_EVENT, OTHER
+  const [subBillingCycle, setSubBillingCycle] = useState('MONTHLY'); // 'MONTHLY', 'YEARLY'
+  const [selectedSubPlan, setSelectedSubPlan] = useState('STARTER'); // 'STARTER', 'GROWTH'
 
   // Flexible Onboarding State
   const [onboardingData, setOnboardingData] = useState({
@@ -752,6 +754,62 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = null 
                   </div>
                 )}
 
+                {/* Subscription Plan Selection Banner for Restaurant */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 font-black text-xs text-emerald-900 dark:text-emerald-200">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      <span>Select Restaurant Subscription Plan</span>
+                    </div>
+                    
+                    {/* Monthly vs Yearly Toggle */}
+                    <div className="flex bg-white dark:bg-slate-900 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setSubBillingCycle('MONTHLY')}
+                        className={`px-2 py-0.5 font-extrabold rounded-lg transition-all ${subBillingCycle === 'MONTHLY' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}
+                      >
+                        Monthly
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSubBillingCycle('YEARLY')}
+                        className={`px-2 py-0.5 font-extrabold rounded-lg transition-all flex items-center space-x-1 ${subBillingCycle === 'YEARLY' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}
+                      >
+                        <span>Yearly</span>
+                        <span className="bg-amber-400 text-slate-900 text-[8px] font-black px-1 rounded-full">20% OFF</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubPlan('STARTER')}
+                      className={`p-2.5 rounded-xl border text-left space-y-0.5 transition-all ${selectedSubPlan === 'STARTER' ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-sm ring-1 ring-emerald-500' : 'border-slate-200 dark:border-slate-800 bg-slate-100/50'}`}
+                    >
+                      <div className="text-[10px] font-black uppercase text-emerald-600">Starter Donor</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white">
+                        {subBillingCycle === 'YEARLY' ? '₹1,599/mo' : '₹1,999/mo'}
+                      </div>
+                      <div className="text-[9px] text-slate-500 font-semibold">Single restaurant / cafe</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubPlan('GROWTH')}
+                      className={`p-2.5 rounded-xl border text-left space-y-0.5 transition-all relative ${selectedSubPlan === 'GROWTH' ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-sm ring-1 ring-emerald-500' : 'border-slate-200 dark:border-slate-800 bg-slate-100/50'}`}
+                    >
+                      <span className="absolute -top-2 right-2 text-[8px] font-black bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full">POPULAR</span>
+                      <div className="text-[10px] font-black uppercase text-emerald-600">Pro Growth Chain</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white">
+                        {subBillingCycle === 'YEARLY' ? '₹5,599/mo' : '₹6,999/mo'}
+                      </div>
+                      <div className="text-[9px] text-slate-500 font-semibold">Multi-branch &amp; ESG PDF</div>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Mandatory Safety Checkbox */}
                 <div className="flex items-center space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <input
@@ -824,6 +882,60 @@ export default function RegistrationModal({ isOpen, onClose, initialRole = null 
                     <option value="NGO">Registered NGO (80G Eligible)</option>
                     <option value="SHELTER">Community Shelter / Orphanage</option>
                   </select>
+                </div>
+
+                {/* Subscription Plan Selection Banner for NGO */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 font-black text-xs text-emerald-900 dark:text-emerald-200">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      <span>Select NGO Plan</span>
+                    </div>
+                    
+                    {/* Monthly vs Yearly Toggle */}
+                    <div className="flex bg-white dark:bg-slate-900 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setSubBillingCycle('MONTHLY')}
+                        className={`px-2 py-0.5 font-extrabold rounded-lg transition-all ${subBillingCycle === 'MONTHLY' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}
+                      >
+                        Monthly
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSubBillingCycle('YEARLY')}
+                        className={`px-2 py-0.5 font-extrabold rounded-lg transition-all flex items-center space-x-1 ${subBillingCycle === 'YEARLY' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}
+                      >
+                        <span>Yearly</span>
+                        <span className="bg-amber-400 text-slate-900 text-[8px] font-black px-1 rounded-full">20% OFF</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubPlan('FREE')}
+                      className={`p-2.5 rounded-xl border text-left space-y-0.5 transition-all ${selectedSubPlan === 'FREE' ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-sm ring-1 ring-emerald-500' : 'border-slate-200 dark:border-slate-800 bg-slate-100/50'}`}
+                    >
+                      <div className="text-[10px] font-black uppercase text-emerald-600">Community Free</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white">₹0 / Forever</div>
+                      <div className="text-[9px] text-slate-500 font-semibold">Unlimited surplus claims</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubPlan('NGO_PRO')}
+                      className={`p-2.5 rounded-xl border text-left space-y-0.5 transition-all relative ${selectedSubPlan === 'NGO_PRO' ? 'border-emerald-500 bg-white dark:bg-slate-900 shadow-sm ring-1 ring-emerald-500' : 'border-slate-200 dark:border-slate-800 bg-slate-100/50'}`}
+                    >
+                      <span className="absolute -top-2 right-2 text-[8px] font-black bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full">RECOMMENDED</span>
+                      <div className="text-[10px] font-black uppercase text-emerald-600">Express Rescue Pro</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white">
+                        {subBillingCycle === 'YEARLY' ? '₹399/mo' : '₹499/mo'}
+                      </div>
+                      <div className="text-[9px] text-slate-500 font-semibold">Priority thermal van under 30m</div>
+                    </button>
+                  </div>
                 </div>
               </>
             )}
