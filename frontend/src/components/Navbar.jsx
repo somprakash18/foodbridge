@@ -41,6 +41,7 @@ import RegistrationModal from './RegistrationModal';
 import QuickDonateModal from './QuickDonateModal';
 import AiFreshnessCalculatorModal from './AiFreshnessCalculatorModal';
 import TaxSavingsCalculatorModal from './TaxSavingsCalculatorModal';
+import FoodSafetyModal from './FoodSafetyModal';
 
 export default function Navbar({ onOpenAuth }) {
   const auth = useAuth() || {};
