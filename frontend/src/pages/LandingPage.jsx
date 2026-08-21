@@ -36,6 +36,7 @@ import PdfReceiptModal from '../components/PdfReceiptModal';
 import ChatDrawer from '../components/ChatDrawer';
 import TaxSavingsCalculatorModal from '../components/TaxSavingsCalculatorModal';
 import AiFreshnessCalculatorModal from '../components/AiFreshnessCalculatorModal';
+import FoodSafetyModal from '../components/FoodSafetyModal';
 
 export default function LandingPage({ onOpenAuth }) {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ export default function LandingPage({ onOpenAuth }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [taxModalOpen, setTaxModalOpen] = useState(false);
   const [freshnessModalOpen, setFreshnessModalOpen] = useState(false);
+  const [foodSafetyOpen, setFoodSafetyOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   const handleLogout = () => {
@@ -247,6 +249,14 @@ export default function LandingPage({ onOpenAuth }) {
                   <span>My Orders & Pickups</span>
                 </div>
                 {orders.length > 0 && <span className="px-2 py-0.5 text-[9px] bg-emerald-100 text-emerald-800 rounded-full font-black">{orders.length}</span>}
+              </button>
+
+              <button
+                onClick={() => setFoodSafetyOpen(true)}
+                className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 font-extrabold text-xs transition-all hover:bg-emerald-100"
+              >
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Food Safety Shield</span>
               </button>
 
               <button
@@ -466,6 +476,7 @@ export default function LandingPage({ onOpenAuth }) {
       <QuickDonateModal isOpen={quickDonateOpen} onClose={() => setQuickDonateOpen(false)} />
       <TaxSavingsCalculatorModal isOpen={taxModalOpen} onClose={() => setTaxModalOpen(false)} />
       <AiFreshnessCalculatorModal isOpen={freshnessModalOpen} onClose={() => setFreshnessModalOpen(false)} />
+      <FoodSafetyModal isOpen={foodSafetyOpen} onClose={() => setFoodSafetyOpen(false)} selectedItem={selectedSafetyItem} />
     </div>
   );
 }
