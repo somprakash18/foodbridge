@@ -474,6 +474,135 @@ export const AppProvider = ({ children }) => {
     confetti({ particleCount: 150, spread: 90, origin: { y: 0.4 } });
   };
 
+  const [topRestaurants, setTopRestaurants] = useState([
+    {
+      id: 1,
+      name: "Haldiram Sweets & Fine Dining",
+      logo: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80",
+      coverImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
+      location: "Connaught Place, New Delhi",
+      fssaiLicense: "FSSAI-10019011000123",
+      rating: 4.9,
+      totalRatings: 342,
+      mealsRescued: 4850,
+      impactCredits: 12450,
+      creditTier: "PLATINUM DONOR",
+      hygieneRating: "5 Stars (FSSAI Verified)",
+      badge: "Top Donor 2026",
+      recipientTags: ["Punctual Delivery", "Hot & Sealed", "Generous Portions"],
+      recentReviews: [
+        { id: 101, recipientName: "Akshaya Patra Foundation (NGO)", rating: 5, comment: "Paneer curry was piping hot and sealed perfectly! Served 40 children.", timeAgo: "2 hours ago" },
+        { id: 102, recipientName: "Robin Hood Army NGO", rating: 5, comment: "Always clean, high quality food. FSSAI hygiene guaranteed.", timeAgo: "Yesterday" }
+      ]
+    },
+    {
+      id: 2,
+      name: "Domino's Pizza Center",
+      logo: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=200&q=80",
+      coverImage: "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?auto=format&fit=crop&w=800&q=80",
+      location: "Khar West, Mumbai",
+      fssaiLicense: "FSSAI-10021011000492",
+      rating: 4.8,
+      totalRatings: 284,
+      mealsRescued: 3200,
+      impactCredits: 8900,
+      creditTier: "GOLD DONOR",
+      hygieneRating: "5 Stars (FSSAI Verified)",
+      badge: "Fastest Rescue Partner",
+      recipientTags: ["Thermal Insulated", "Super Fresh", "Eco Box Packaging"],
+      recentReviews: [
+        { id: 103, recipientName: "Feeding India Volunteer", rating: 5, comment: "Pizzas arrived in insulated thermal bags. 100% fresh!", timeAgo: "3 hours ago" }
+      ]
+    },
+    {
+      id: 3,
+      name: "Barbeque Nation Buffet",
+      logo: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=200&q=80",
+      coverImage: "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80",
+      location: "Indiranagar, Bengaluru",
+      fssaiLicense: "FSSAI-10018022000845",
+      rating: 4.95,
+      totalRatings: 410,
+      mealsRescued: 6100,
+      impactCredits: 15800,
+      creditTier: "PLATINUM DONOR",
+      hygieneRating: "5 Stars (FSSAI Verified)",
+      badge: "Zero Waste Champion",
+      recipientTags: ["High Protein", "Great Taste", "Tamper Sealed"],
+      recentReviews: [
+        { id: 104, recipientName: "Shelter India NGO", rating: 5, comment: "Huge surplus grill box. Served 60 homeless shelter residents.", timeAgo: "5 hours ago" }
+      ]
+    },
+    {
+      id: 4,
+      name: "Taj Palace Royal Kitchens",
+      logo: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=200&q=80",
+      coverImage: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
+      location: "Chanakyapuri, New Delhi",
+      fssaiLicense: "FSSAI-10015011000001",
+      rating: 5.0,
+      totalRatings: 520,
+      mealsRescued: 9400,
+      impactCredits: 24500,
+      creditTier: "DIAMOND DONOR",
+      hygieneRating: "5 Stars (5-Star Hotel Certified)",
+      badge: "5-Star Excellence",
+      recipientTags: ["Gourmet Quality", "Hot Holding", "Instant Pickup"],
+      recentReviews: [
+        { id: 105, recipientName: "Delhi Night Shelter Alliance", rating: 5, comment: "5-Star hotel quality meal rescued! Outstanding hygiene.", timeAgo: "1 hour ago" }
+      ]
+    }
+  ]);
+
+  const rateRestaurant = (restaurantId, newReview) => {
+    setTopRestaurants((prev) =>
+      prev.map((resto) => {
+        if (resto.id === restaurantId) {
+          const updatedRatingsCount = resto.totalRatings + 1;
+          const newAvgRating = Number(((resto.rating * resto.totalRatings + newReview.rating) / updatedRatingsCount).toFixed(2));
+          const updatedCredits = resto.impactCredits + 100;
+          let tier = resto.creditTier;
+          if (updatedCredits >= 20000) tier = 'DIAMOND DONOR';
+          else if (updatedCredits >= 10000) tier = 'PLATINUM DONOR';
+          else if (updatedCredits >= 5000) tier = 'GOLD DONOR';
+
+          return {
+            ...resto,
+            rating: newAvgRating,
+            totalRatings: updatedRatingsCount,
+            impactCredits: updatedCredits,
+            creditTier: tier,
+            recentReviews: [newReview, ...(resto.recentReviews || [])]
+          };
+        }
+        return resto;
+      })
+    );
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } });
+  };
+
+  const addRestaurantCredits = (restaurantId, bonusCredits = 500) => {
+    setTopRestaurants((prev) =>
+      prev.map((resto) => {
+        if (resto.id === restaurantId) {
+          const updatedCredits = resto.impactCredits + bonusCredits;
+          let tier = resto.creditTier;
+          if (updatedCredits >= 20000) tier = 'DIAMOND DONOR';
+          else if (updatedCredits >= 10000) tier = 'PLATINUM DONOR';
+          else if (updatedCredits >= 5000) tier = 'GOLD DONOR';
+
+          return {
+            ...resto,
+            impactCredits: updatedCredits,
+            creditTier: tier
+          };
+        }
+        return resto;
+      })
+    );
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.4 } });
+  };
+
   return (
     <AppContext.Provider value={{
       listings,
@@ -488,7 +617,10 @@ export const AppProvider = ({ children }) => {
       orders,
       donations,
       deliveries,
-      completeDeliveryViaQr
+      completeDeliveryViaQr,
+      topRestaurants,
+      rateRestaurant,
+      addRestaurantCredits
     }}>
       {children}
     </AppContext.Provider>

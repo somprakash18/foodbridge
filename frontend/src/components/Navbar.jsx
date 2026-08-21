@@ -42,6 +42,7 @@ import QuickDonateModal from './QuickDonateModal';
 import AiFreshnessCalculatorModal from './AiFreshnessCalculatorModal';
 import TaxSavingsCalculatorModal from './TaxSavingsCalculatorModal';
 import FoodSafetyModal from './FoodSafetyModal';
+import TopRatedRestaurantsModal from './TopRatedRestaurantsModal';
 
 export default function Navbar({ onOpenAuth }) {
   const auth = useAuth() || {};
@@ -61,6 +62,7 @@ export default function Navbar({ onOpenAuth }) {
   const [regModalOpen, setRegModalOpen] = useState(false);
   const [quickDonateOpen, setQuickDonateOpen] = useState(false);
   const [foodSafetyOpen, setFoodSafetyOpen] = useState(false);
+  const [topRestaurantsOpen, setTopRestaurantsOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('New Delhi NCR, India');
   const [locationLoading, setLocationLoading] = useState(false);
 
@@ -186,6 +188,15 @@ export default function Navbar({ onOpenAuth }) {
                 )}
               </Link>
 
+              <button
+                onClick={() => setTopRestaurantsOpen(true)}
+                className="px-3 py-1.5 text-xs font-extrabold text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/80 hover:bg-amber-200 dark:hover:bg-amber-900 border border-amber-300 dark:border-amber-700/80 rounded-xl flex items-center space-x-1.5 transition-all shadow-sm transform hover:scale-105"
+                title="View Top Rated Restaurant Partners & Recipient Reviews"
+              >
+                <Award className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span>Top Donors</span>
+              </button>
+
               <Link to="/event-rescue" className="px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center space-x-1">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Wedding Rescue</span>
@@ -275,6 +286,7 @@ export default function Navbar({ onOpenAuth }) {
       <RegistrationModal isOpen={regModalOpen} onClose={() => setRegModalOpen(false)} />
       <QuickDonateModal isOpen={quickDonateOpen} onClose={() => setQuickDonateOpen(false)} />
       <FoodSafetyModal isOpen={foodSafetyOpen} onClose={() => setFoodSafetyOpen(false)} />
+      <TopRatedRestaurantsModal isOpen={topRestaurantsOpen} onClose={() => setTopRestaurantsOpen(false)} />
     </>
   );
 }
